@@ -4,6 +4,8 @@ import { Plus, Pencil, Trash2, Filter, Search, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 import SwipeableTransactionRow from './SwipeableTransactionRow';
 import { useIsMobile } from '../hooks/useMediaQuery';
+import { seedDefaultCategories } from '../lib/utils';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Transactions() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -16,6 +18,7 @@ export default function Transactions() {
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [loading, setLoading] = useState(true);
   const isMobile = useIsMobile();
+  const { user } = useAuth();
 
   const [formData, setFormData] = useState({
     amount: '',
@@ -28,14 +31,14 @@ export default function Transactions() {
   });
 
   useEffect(() => {
-    loadData();
+    loadData(true);
   }, []);
 
   useEffect(() => {
     applyFilters();
   }, [transactions, searchTerm, filterType, filterCategory]);
 
-  const loadData = async () => {
+  const loadData = async (attemptSeed = false) => {
     try {
       setLoading(true);
       const { data: transData } = await supabase
@@ -49,6 +52,13 @@ export default function Transactions() {
       
       if (transData) setTransactions(transData);
       if (catData) setCategories(catData);
+
+      // Seed default categories if none exist
+      if (attemptSeed && (!catData || catData.length === 0)) {
+        await seedDefaultCategories(supabase);
+        const { data: newCats } = await supabase.from('categories').select('*');
+        if (newCats) setCategories(newCats);
+      }
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -81,6 +91,10 @@ export default function Transactions() {
     e.preventDefault();
     
     try {
+      if (!user) {
+        toast.error('Please sign in to add or edit transactions.');
+        return;
+      }
       const transactionData = {
         ...formData,
         amount: parseFloat(formData.amount),
@@ -199,8 +213,17 @@ export default function Transactions() {
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Manage your income and expenses</p>
         </div>
         <button
-          onClick={() => { setShowAddModal(true); setEditingTransaction(null); resetForm(); }}
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+          onClick={() => {
+            if (!user) {
+              toast.error('Please sign in to add transactions.');
+              return;
+            }
+            setShowAddModal(true);
+            setEditingTransaction(null);
+            resetForm();
+          }}
+          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-60"
+          disabled={!user}
         >
           <Plus className="w-4 h-4 mr-2" />
           Add Transaction
@@ -217,14 +240,14 @@ export default function Transactions() {
               placeholder="Search transactions..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="pl-10 w-full rounded-xl border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-3"
             />
           </div>
           
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value as any)}
-            className="rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="rounded-xl border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-3"
           >
             <option value="all">All Types</option>
             <option value="income">Income</option>
@@ -234,7 +257,7 @@ export default function Transactions() {
           <select
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
-            className="rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="rounded-xl border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-3"
           >
             <option value="all">All Categories</option>
             {categories.map(cat => (
@@ -244,7 +267,7 @@ export default function Transactions() {
 
           <button
             onClick={exportToCSV}
-            className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
+            className="inline-flex items-center justify-center px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
           >
             <Download className="w-4 h-4 mr-2" />
             Export CSV
@@ -385,8 +408,8 @@ export default function Transactions() {
 
       {/* Add/Edit Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-gray-500 dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-80 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+        <div className="fixed inset-0 bg-gray-500 dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-80 flex items-end md:items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 dark:bg-gray-800 rounded-t-2xl md:rounded-lg shadow-xl w-full md:max-w-md p-6 max-h-[85vh] overflow-y-auto">
             <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
               {editingTransaction ? 'Edit Transaction' : 'Add New Transaction'}
             </h3>
@@ -399,7 +422,9 @@ export default function Transactions() {
                   required
                   value={formData.amount}
                   onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  inputMode="decimal"
+                  enterKeyHint="done"
+                  className="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-3"
                 />
               </div>
               
@@ -410,7 +435,7 @@ export default function Transactions() {
                   required
                   value={formData.date}
                   onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  className="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-3"
                 />
               </div>
 
@@ -419,7 +444,7 @@ export default function Transactions() {
                 <select
                   value={formData.transaction_type}
                   onChange={(e) => setFormData({ ...formData, transaction_type: e.target.value as any })}
-                  className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  className="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-3"
                 >
                   <option value="expense">Expense</option>
                   <option value="income">Income</option>
@@ -431,7 +456,7 @@ export default function Transactions() {
                 <select
                   value={formData.category_id}
                   onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  className="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-3"
                 >
                   <option value="">Select category</option>
                   {categories.filter(c => c.type === formData.transaction_type).map(cat => (
@@ -446,7 +471,7 @@ export default function Transactions() {
                   type="text"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  className="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-3"
                 />
               </div>
 
@@ -456,7 +481,7 @@ export default function Transactions() {
                   type="text"
                   value={formData.merchant}
                   onChange={(e) => setFormData({ ...formData, merchant: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  className="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-3"
                 />
               </div>
 
@@ -464,13 +489,13 @@ export default function Transactions() {
                 <button
                   type="button"
                   onClick={() => { setShowAddModal(false); setEditingTransaction(null); }}
-                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+                  className="px-4 py-2 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
                 >
                   {editingTransaction ? 'Update' : 'Add'} Transaction
                 </button>

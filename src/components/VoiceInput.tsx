@@ -50,9 +50,9 @@ export default function VoiceInput({ onTranscript, placeholder }: VoiceInputProp
 
         // Update transcript state
         if (finalTranscript) {
-          const newTranscript = transcript + finalTranscript;
-          setTranscript(newTranscript);
-          onTranscript(newTranscript);
+          const clean = finalTranscript.trim();
+          setTranscript(prev => (prev + clean + ' ').trim());
+          onTranscript(clean);
         }
       };
 
@@ -78,7 +78,7 @@ export default function VoiceInput({ onTranscript, placeholder }: VoiceInputProp
         recognitionRef.current.stop();
       }
     };
-  }, [transcript, onTranscript]);
+  }, [onTranscript]);
 
   const toggleListening = () => {
     if (!isSupported) {

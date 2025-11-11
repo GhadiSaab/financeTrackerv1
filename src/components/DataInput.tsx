@@ -4,6 +4,8 @@ import { supabase, Category } from '../lib/supabase';
 import { Sparkles, Upload, FileText, AlertCircle, CheckCircle, Loader } from 'lucide-react';
 import toast from 'react-hot-toast';
 import VoiceInput from './VoiceInput';
+import { seedDefaultCategories } from '../lib/utils';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function DataInput() {
   const [inputText, setInputText] = useState('');
@@ -12,6 +14,7 @@ export default function DataInput() {
   const [loading, setLoading] = useState(false);
   const [importing, setImporting] = useState(false);
   const [parseStats, setParseStats] = useState<any>(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     loadCategories();
@@ -22,13 +25,20 @@ export default function DataInput() {
       .from('categories')
       .select('*');
     
-    if (data) setCategories(data);
+    if (data && data.length > 0) {
+      setCategories(data);
+      return;
+    }
+    // Seed if empty then reload
+    await seedDefaultCategories(supabase);
+    const { data: newCats } = await supabase.from('categories').select('*');
+    if (newCats) setCategories(newCats);
   };
 
   const handleVoiceTranscript = (transcript: string) => {
-    // Append voice transcript to existing input text
+    // Append voice transcript to existing input text with a space for better flow
     setInputText(prev => {
-      const separator = prev.trim() ? '\n' : '';
+      const separator = prev.trim() ? ' ' : '';
       return prev + separator + transcript;
     });
   };
@@ -68,6 +78,10 @@ export default function DataInput() {
   const handleImport = async () => {
     if (parsedTransactions.length === 0) {
       toast.error('No transactions to import');
+      return;
+    }
+    if (!user) {
+      toast.error('Please sign in to import transactions.');
       return;
     }
 
@@ -160,7 +174,7 @@ export default function DataInput() {
           onChange={(e) => setInputText(e.target.value)}
           placeholder="Paste your transaction data here...&#10;&#10;Example:&#10;$45.20 at Starbucks on 11/08/2025&#10;Grocery shopping $85.50 11/02/2025&#10;Paid $1200 for rent on Nov 1"
           rows={10}
-          className="w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 shadow-sm focus:border-blue-500 focus:ring-blue-500 font-mono text-sm"
+          className="w-full rounded-xl border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 shadow-sm focus:border-blue-500 focus:ring-blue-500 font-mono text-base p-4"
         />
 
         <div className="mt-4 flex justify-end space-x-3">
@@ -266,7 +280,7 @@ export default function DataInput() {
                         type="date"
                         value={transaction.date}
                         onChange={(e) => updateTransaction(index, 'date', e.target.value)}
-                        className="text-sm border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded"
+                        className="text-sm border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2"
                       />
                     </td>
                     <td className="px-6 py-4 text-sm">
@@ -274,7 +288,7 @@ export default function DataInput() {
                         type="text"
                         value={transaction.description}
                         onChange={(e) => updateTransaction(index, 'description', e.target.value)}
-                        className="w-full text-sm border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded"
+                        className="w-full text-sm border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2"
                       />
                     </td>
                     <td className="px-6 py-4 text-sm">
@@ -282,14 +296,14 @@ export default function DataInput() {
                         type="text"
                         value={transaction.merchant}
                         onChange={(e) => updateTransaction(index, 'merchant', e.target.value)}
-                        className="w-full text-sm border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded"
+                        className="w-full text-sm border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2"
                       />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <select
                         value={transaction.suggested_category}
                         onChange={(e) => updateTransaction(index, 'suggested_category', e.target.value)}
-                        className="text-sm border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded"
+                        className="text-sm border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2"
                       >
                         {categories.map(cat => (
                           <option key={cat.id} value={cat.name}>{cat.name}</option>
@@ -300,7 +314,7 @@ export default function DataInput() {
                       <select
                         value={transaction.transaction_type}
                         onChange={(e) => updateTransaction(index, 'transaction_type', e.target.value)}
-                        className="text-sm border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded"
+                        className="text-sm border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2"
                       >
                         <option value="expense">Expense</option>
                         <option value="income">Income</option>
@@ -312,7 +326,7 @@ export default function DataInput() {
                         step="0.01"
                         value={transaction.amount}
                         onChange={(e) => updateTransaction(index, 'amount', parseFloat(e.target.value))}
-                        className="w-24 text-sm border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded text-right"
+                        className="w-24 text-sm border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 text-right"
                       />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
