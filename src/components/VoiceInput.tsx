@@ -1,0 +1,179 @@
+import { useState, useEffect, useRef } from 'react';
+import { Mic, MicOff, Loader } from 'lucide-react';
+import toast from 'react-hot-toast';
+
+interface VoiceInputProps {
+  onTranscript: (text: string) => void;
+  placeholder?: string;
+}
+
+export default function VoiceInput({ onTranscript, placeholder }: VoiceInputProps) {
+  const [isListening, setIsListening] = useState(false);
+  const [isSupported, setIsSupported] = useState(false);
+  const [transcript, setTranscript] = useState('');
+  const recognitionRef = useRef<any>(null);
+
+  useEffect(() => {
+    // Check if browser supports Web Speech API
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    
+    if (SpeechRecognition) {
+      setIsSupported(true);
+      
+      // Initialize speech recognition
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => {
+        setIsListening(true);
+        toast.success('Voice recording started', { duration: 2000 });
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognition.onresult = (event: any) => {
+        let interimTranscript = '';
+        let finalTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcriptPiece = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcriptPiece + ' ';
+          } else {
+            interimTranscript += transcriptPiece;
+          }
+        }
+
+        // Update transcript state
+        if (finalTranscript) {
+          const newTranscript = transcript + finalTranscript;
+          setTranscript(newTranscript);
+          onTranscript(newTranscript);
+        }
+      };
+
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        
+        if (event.error === 'not-allowed') {
+          toast.error('Microphone access denied. Please enable it in your browser settings.');
+        } else if (event.error === 'no-speech') {
+          toast.error('No speech detected. Please try again.');
+        } else {
+          toast.error(`Error: ${event.error}`);
+        }
+        
+        setIsListening(false);
+      };
+
+      recognitionRef.current = recognition;
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, [transcript, onTranscript]);
+
+  const toggleListening = () => {
+    if (!isSupported) {
+      toast.error('Voice input is not supported in your browser');
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current?.stop();
+      toast.success('Voice recording stopped', { duration: 2000 });
+    } else {
+      setTranscript('');
+      recognitionRef.current?.start();
+    }
+  };
+
+  if (!isSupported) {
+    return (
+      <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
+        <div className="flex">
+          <div className="flex-shrink-0">
+            <MicOff className="h-5 w-5 text-yellow-400" />
+          </div>
+          <div className="ml-3">
+            <p className="text-sm text-yellow-700">
+              Voice input is not supported in your browser. Please try Chrome, Edge, or Safari.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <Mic className="w-5 h-5 text-blue-600" />
+          <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">Voice Input</h3>
+        </div>
+        <button
+          onClick={toggleListening}
+          className={`
+            relative inline-flex items-center px-4 py-2 rounded-full text-sm font-medium
+            transition-all duration-200 transform hover:scale-105 active:scale-95
+            ${isListening 
+              ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg' 
+              : 'bg-blue-600 hover:bg-blue-700 text-white shadow-md'
+            }
+          `}
+        >
+          {isListening ? (
+            <>
+              <div className="absolute -inset-1 bg-red-400 rounded-full animate-ping opacity-75"></div>
+              <MicOff className="w-4 h-4 mr-2 relative z-10" />
+              <span className="relative z-10">Stop Recording</span>
+            </>
+          ) : (
+            <>
+              <Mic className="w-4 h-4 mr-2" />
+              Start Recording
+            </>
+          )}
+        </button>
+      </div>
+
+      {isListening && (
+        <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-md border border-blue-200">
+          <div className="flex gap-1">
+            <div className="w-1 h-6 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: '0ms' }}></div>
+            <div className="w-1 h-8 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: '150ms' }}></div>
+            <div className="w-1 h-6 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: '300ms' }}></div>
+          </div>
+          <p className="text-sm text-blue-700 font-medium">
+            Listening... Speak now!
+          </p>
+        </div>
+      )}
+
+      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+        {placeholder || 'Click the button and speak naturally. For example: "Fifty dollars at Starbucks on November 10th"'}
+      </p>
+
+      {/* Helpful tips */}
+      {!isListening && (
+        <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-md">
+          <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">Tips for best results:</p>
+          <ul className="text-xs text-gray-600 space-y-1 list-disc list-inside">
+            <li>Speak clearly and at a normal pace</li>
+            <li>Include amount, merchant, and date when possible</li>
+            <li>Example: "Paid 25 dollars for gas at Shell yesterday"</li>
+            <li>You can record multiple transactions in one session</li>
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
