@@ -28,7 +28,7 @@ export default function ThemeToggle() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="icon-button p-2 text-slate-600 dark:text-slate-200"
+        className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
         aria-label="Toggle theme"
       >
         {theme === 'light' && <Sun className="w-5 h-5 text-gray-700 dark:text-gray-300" />}
@@ -37,7 +37,7 @@ export default function ThemeToggle() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-40 rounded-2xl shadow-2xl border border-white/70 dark:border-white/10 bg-white/90 dark:bg-slate-950/70 backdrop-blur-xl overflow-hidden z-50">
+        <div className="absolute right-0 mt-2 w-36 rounded-lg shadow-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 overflow-hidden z-50">
           {themes.map((t) => {
             const Icon = t.icon;
             return (
@@ -47,10 +47,10 @@ export default function ThemeToggle() {
                   setTheme(t.value as any);
                   setIsOpen(false);
                 }}
-                className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm backdrop-blur-xl transition-colors ${
+                className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
                   theme === t.value
-                    ? 'bg-gradient-to-r from-indigo-500/10 to-purple-500/10 text-indigo-600 dark:text-indigo-300'
-                    : 'text-slate-600 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-white/5'
+                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                    : 'text-gray-700 dark:text-gray-300'
                 }`}
               >
                 <Icon className="w-4 h-4" />
