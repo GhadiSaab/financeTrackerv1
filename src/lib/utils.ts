@@ -6,11 +6,14 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export async function seedDefaultCategories(supabase: SupabaseClient) {
-  // Check if categories exist
+export async function seedDefaultCategories(supabase: SupabaseClient, userId?: string) {
+  if (!userId) return;
+
+  // Only count the current user's categories since RLS scopes queries
   const { count, error: countError } = await supabase
     .from('categories')
-    .select('*', { count: 'exact', head: true });
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId);
 
   if (countError) {
     // If counting fails, do not attempt to seed blindly
@@ -36,7 +39,10 @@ export async function seedDefaultCategories(supabase: SupabaseClient) {
     { name: 'Salary', color: '#16A34A', icon: 'banknotes', budget_limit: 0, type: 'income' },
     { name: 'Investments', color: '#22C55E', icon: 'chart-bar', budget_limit: 0, type: 'income' },
     { name: 'Freelance', color: '#84CC16', icon: 'briefcase', budget_limit: 0, type: 'income' },
-  ];
+  ].map(category => ({
+    ...category,
+    user_id: userId,
+  }));
 
   await supabase.from('categories').insert(defaultCategories as any[]);
 }

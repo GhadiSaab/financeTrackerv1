@@ -4,8 +4,10 @@ import { supabase, Investment } from '../lib/supabase';
 import { Plus, Pencil, Trash2, TrendingUp, TrendingDown } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import toast from 'react-hot-toast';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Investments() {
+  const { user } = useAuth();
   const [investments, setInvestments] = useState<Investment[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -21,15 +23,22 @@ export default function Investments() {
   });
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (user) {
+      loadData();
+    } else {
+      setInvestments([]);
+    }
+  }, [user]);
 
   const loadData = async () => {
+    if (!user) return;
+
     try {
       setLoading(true);
       const { data } = await supabase
         .from('investments')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
       
       if (data) setInvestments(data);
@@ -44,17 +53,24 @@ export default function Investments() {
     e.preventDefault();
     
     try {
+      if (!user) {
+        toast.error('Please sign in to add or edit investments.');
+        return;
+      }
+
       const investmentData = {
         ...formData,
         amount: parseFloat(formData.amount),
-        current_value: parseFloat(formData.current_value || formData.amount)
+        current_value: parseFloat(formData.current_value || formData.amount),
+        user_id: user.id
       };
 
       if (editingInvestment) {
         const { error } = await supabase
           .from('investments')
           .update(investmentData)
-          .eq('id', editingInvestment.id);
+          .eq('id', editingInvestment.id)
+          .eq('user_id', user.id);
         
         if (error) throw error;
       } else {
@@ -80,10 +96,13 @@ export default function Investments() {
     if (!confirm('Are you sure you want to delete this investment?')) return;
 
     try {
+      if (!user) return;
+
       const { error } = await supabase
         .from('investments')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user.id);
       
       if (error) throw error;
       loadData();

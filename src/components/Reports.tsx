@@ -4,8 +4,10 @@ import { FileText, Download, Calendar, TrendingUp } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import toast from 'react-hot-toast';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Reports() {
+  const { user } = useAuth();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [investments, setInvestments] = useState<Investment[]>([]);
@@ -16,23 +18,35 @@ export default function Reports() {
   const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (user) {
+      loadData();
+    } else {
+      setTransactions([]);
+      setCategories([]);
+      setInvestments([]);
+    }
+  }, [user]);
 
   const loadData = async () => {
+    if (!user) return;
+
     try {
       const { data: transData } = await supabase
         .from('transactions')
         .select('*')
+        .eq('user_id', user.id)
         .order('date', { ascending: false });
       
       const { data: catData } = await supabase
         .from('categories')
-        .select('*');
+        .select('*')
+        .eq('user_id', user.id)
+        .order('name');
       
       const { data: invData } = await supabase
         .from('investments')
-        .select('*');
+        .select('*')
+        .eq('user_id', user.id);
       
       if (transData) setTransactions(transData);
       if (catData) setCategories(catData);

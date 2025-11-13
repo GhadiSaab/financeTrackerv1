@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { CustomTooltip, getChartColors } from './ChartComponents';
 import { supabase, Transaction, Category } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
 import {
   BarChart,
   Bar,
@@ -22,6 +23,7 @@ import { TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 
 export default function Analytics() {
   const { resolvedTheme } = useTheme();
+  const { user } = useAuth();
   const chartColors = getChartColors(resolvedTheme);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -29,20 +31,30 @@ export default function Analytics() {
   const [timeRange, setTimeRange] = useState<'3m' | '6m' | '1y'>('6m');
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (user) {
+      loadData();
+    } else {
+      setTransactions([]);
+      setCategories([]);
+    }
+  }, [user]);
 
   const loadData = async () => {
+    if (!user) return;
+
     try {
       setLoading(true);
       const { data: transData } = await supabase
         .from('transactions')
         .select('*')
+        .eq('user_id', user.id)
         .order('date', { ascending: true });
       
       const { data: catData } = await supabase
         .from('categories')
-        .select('*');
+        .select('*')
+        .eq('user_id', user.id)
+        .order('name');
       
       if (transData) setTransactions(transData);
       if (catData) setCategories(catData);

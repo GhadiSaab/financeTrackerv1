@@ -17,21 +17,33 @@ export default function DataInput() {
   const { user } = useAuth();
 
   useEffect(() => {
-    loadCategories();
-  }, []);
+    if (user) {
+      loadCategories();
+    } else {
+      setCategories([]);
+    }
+  }, [user]);
 
   const loadCategories = async () => {
+    if (!user) return;
+
     const { data } = await supabase
       .from('categories')
-      .select('*');
+      .select('*')
+      .eq('user_id', user.id)
+      .order('name');
     
     if (data && data.length > 0) {
       setCategories(data);
       return;
     }
     // Seed if empty then reload
-    await seedDefaultCategories(supabase);
-    const { data: newCats } = await supabase.from('categories').select('*');
+    await seedDefaultCategories(supabase, user.id);
+    const { data: newCats } = await supabase
+      .from('categories')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('name');
     if (newCats) setCategories(newCats);
   };
 
@@ -98,7 +110,8 @@ export default function DataInput() {
           merchant: t.merchant,
           transaction_type: t.transaction_type,
           notes: `Imported via Smart Input (confidence: ${t.confidence})`,
-          is_recurring: false
+          is_recurring: false,
+          user_id: user.id
         };
       });
 

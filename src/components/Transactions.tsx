@@ -31,32 +31,46 @@ export default function Transactions() {
   });
 
   useEffect(() => {
-    loadData(true);
-  }, []);
+    if (user) {
+      loadData(true);
+    } else {
+      setTransactions([]);
+      setCategories([]);
+    }
+  }, [user]);
 
   useEffect(() => {
     applyFilters();
   }, [transactions, searchTerm, filterType, filterCategory]);
 
   const loadData = async (attemptSeed = false) => {
+    if (!user) return;
+
     try {
       setLoading(true);
       const { data: transData } = await supabase
         .from('transactions')
         .select('*')
+        .eq('user_id', user.id)
         .order('date', { ascending: false });
       
       const { data: catData } = await supabase
         .from('categories')
-        .select('*');
+        .select('*')
+        .eq('user_id', user.id)
+        .order('name');
       
       if (transData) setTransactions(transData);
       if (catData) setCategories(catData);
 
       // Seed default categories if none exist
       if (attemptSeed && (!catData || catData.length === 0)) {
-        await seedDefaultCategories(supabase);
-        const { data: newCats } = await supabase.from('categories').select('*');
+        await seedDefaultCategories(supabase, user.id);
+        const { data: newCats } = await supabase
+          .from('categories')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('name');
         if (newCats) setCategories(newCats);
       }
     } catch (error) {
@@ -98,14 +112,16 @@ export default function Transactions() {
       const transactionData = {
         ...formData,
         amount: parseFloat(formData.amount),
-        is_recurring: false
+        is_recurring: false,
+        user_id: user.id
       };
 
       if (editingTransaction) {
         const { error } = await supabase
           .from('transactions')
           .update(transactionData)
-          .eq('id', editingTransaction.id);
+          .eq('id', editingTransaction.id)
+          .eq('user_id', user.id);
         
         if (error) throw error;
       } else {
@@ -131,10 +147,13 @@ export default function Transactions() {
     if (!confirm('Are you sure you want to delete this transaction?')) return;
 
     try {
+      if (!user) return;
+
       const { error } = await supabase
         .from('transactions')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user.id);
       
       if (error) throw error;
       loadData();

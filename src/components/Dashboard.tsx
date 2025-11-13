@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { CustomTooltip, getChartColors } from './ChartComponents';
 import { supabase, Transaction, Category, Investment } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
 import { 
   DollarSign, 
   TrendingUp, 
@@ -31,6 +32,7 @@ import {
 
 export default function Dashboard() {
   const { resolvedTheme } = useTheme();
+  const { user } = useAuth();
   const chartColors = getChartColors(resolvedTheme);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -39,10 +41,18 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (user) {
+      loadData();
+    } else {
+      setTransactions([]);
+      setCategories([]);
+      setInvestments([]);
+    }
+  }, [user]);
 
   const loadData = async () => {
+    if (!user) return;
+
     try {
       setLoading(true);
       
@@ -50,17 +60,20 @@ export default function Dashboard() {
       const { data: transData } = await supabase
         .from('transactions')
         .select('*')
+        .eq('user_id', user.id)
         .order('date', { ascending: false });
       
       // Load categories
       const { data: catData } = await supabase
         .from('categories')
-        .select('*');
+        .select('*')
+        .eq('user_id', user.id);
       
       // Load investments
       const { data: invData } = await supabase
         .from('investments')
-        .select('*');
+        .select('*')
+        .eq('user_id', user.id);
       
       if (transData) setTransactions(transData);
       if (catData) setCategories(catData);
