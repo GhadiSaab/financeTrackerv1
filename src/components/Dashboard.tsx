@@ -294,32 +294,81 @@ export default function Dashboard() {
           <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-4 md:p-6 rounded-xl md:rounded-2xl shadow-sm">
             <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-3 md:mb-4">Spending by Category</h3>
             {categoryData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={250}>
-                <PieChart>
-                  <Pie
-                    data={categoryData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {categoryData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value) => `$${Number(value).toFixed(2)}`}
-                    contentStyle={{
-                      backgroundColor: resolvedTheme === 'dark' ? '#1f2937' : '#ffffff',
-                      border: `1px solid ${resolvedTheme === 'dark' ? '#374151' : '#e5e7eb'}`,
-                      borderRadius: '0.5rem'
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+              <div className="space-y-4">
+                <ResponsiveContainer width="100%" height={220}>
+                  <PieChart>
+                    <Pie
+                      data={categoryData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={90}
+                      fill="#8884d8"
+                      dataKey="value"
+                      paddingAngle={2}
+                      strokeWidth={2}
+                      stroke={resolvedTheme === 'dark' ? '#111827' : '#ffffff'}
+                    >
+                      {categoryData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value) => `$${Number(value).toFixed(2)}`}
+                      contentStyle={{
+                        backgroundColor: resolvedTheme === 'dark' ? '#1f2937' : '#ffffff',
+                        border: `1px solid ${resolvedTheme === 'dark' ? '#374151' : '#e5e7eb'}`,
+                        borderRadius: '0.75rem',
+                        fontSize: '0.875rem',
+                        padding: '8px 12px',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+
+                {/* Legend with percentage bars */}
+                <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                  {categoryData
+                    .sort((a, b) => b.value - a.value)
+                    .map((category, index) => {
+                      const total = categoryData.reduce((sum, cat) => sum + cat.value, 0);
+                      const percentage = ((category.value / total) * 100).toFixed(1);
+                      return (
+                        <div key={index} className="group">
+                          <div className="flex items-center justify-between mb-1.5">
+                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                              <div
+                                className="w-3 h-3 rounded-full flex-shrink-0 ring-2 ring-white dark:ring-gray-900"
+                                style={{ backgroundColor: category.color }}
+                              />
+                              <span className="text-xs md:text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                                {category.name}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                              <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">
+                                {percentage}%
+                              </span>
+                              <span className="text-xs md:text-sm font-bold text-gray-900 dark:text-white">
+                                ${category.value.toFixed(0)}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="w-full h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all duration-500 group-hover:opacity-80"
+                              style={{
+                                width: `${percentage}%`,
+                                backgroundColor: category.color
+                              }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
             ) : (
               <div className="flex items-center justify-center h-[250px] text-gray-500 dark:text-gray-400">
                 <p className="text-sm">No category data available</p>

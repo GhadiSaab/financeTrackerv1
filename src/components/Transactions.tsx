@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase, Transaction, Category } from '../lib/supabase';
-import { Plus, Pencil, Trash2, Filter, Search, Download } from 'lucide-react';
+import { Plus, Pencil, Trash2, Filter, Search, Download, DollarSign, TrendingUp, Calendar, Tag, FileText, Store } from 'lucide-react';
 import toast from 'react-hot-toast';
 import SwipeableTransactionRow from './SwipeableTransactionRow';
 import { useIsMobile } from '../hooks/useMediaQuery';
@@ -425,98 +425,139 @@ export default function Transactions() {
         )}
       </div>
 
-      {/* Add/Edit Modal */}
+      {/* Add/Edit Modal - Mobile Optimized */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-gray-500 dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-80 flex items-end md:items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 dark:bg-gray-800 rounded-t-2xl md:rounded-lg shadow-xl w-full md:max-w-md p-6 max-h-[85vh] overflow-y-auto">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
-              {editingTransaction ? 'Edit Transaction' : 'Add New Transaction'}
-            </h3>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Amount</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  required
-                  value={formData.amount}
-                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  inputMode="decimal"
-                  enterKeyHint="done"
-                  className="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-3"
-                />
+        <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm flex items-end md:items-center justify-center z-50 p-0 md:p-4">
+          <div className="bg-white dark:bg-gray-900 rounded-t-3xl md:rounded-2xl shadow-2xl w-full md:max-w-lg max-h-[90vh] md:max-h-[85vh] overflow-y-auto">
+            {/* Header */}
+            <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-500 dark:to-purple-500 p-5 md:p-6 rounded-t-3xl md:rounded-t-2xl">
+              <h3 className="text-xl md:text-2xl font-bold text-white">
+                {editingTransaction ? 'Edit Transaction' : 'Add Transaction'}
+              </h3>
+              <p className="text-blue-100 text-sm mt-1">
+                {editingTransaction ? 'Update your transaction details' : 'Record a new transaction'}
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="p-5 md:p-6 space-y-5">
+              {/* Amount & Type Row */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="flex items-center text-sm font-semibold text-gray-900 dark:text-white mb-2">
+                    <DollarSign className="w-4 h-4 mr-1.5 text-blue-600 dark:text-blue-400" />
+                    Amount
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium">$</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      required
+                      value={formData.amount}
+                      onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                      inputMode="decimal"
+                      enterKeyHint="done"
+                      placeholder="0.00"
+                      className="w-full pl-8 pr-4 py-3.5 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white font-medium focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 transition-all text-lg"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="flex items-center text-sm font-semibold text-gray-900 dark:text-white mb-2">
+                    <TrendingUp className="w-4 h-4 mr-1.5 text-blue-600 dark:text-blue-400" />
+                    Type
+                  </label>
+                  <select
+                    value={formData.transaction_type}
+                    onChange={(e) => setFormData({ ...formData, transaction_type: e.target.value as any })}
+                    className="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white font-medium focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 transition-all"
+                  >
+                    <option value="expense">💸 Expense</option>
+                    <option value="income">💰 Income</option>
+                  </select>
+                </div>
               </div>
-              
+
+              {/* Date */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Date</label>
+                <label className="flex items-center text-sm font-semibold text-gray-900 dark:text-white mb-2">
+                  <Calendar className="w-4 h-4 mr-1.5 text-blue-600 dark:text-blue-400" />
+                  Date
+                </label>
                 <input
                   type="date"
                   required
                   value={formData.date}
                   onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  className="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-3"
+                  className="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white font-medium focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 transition-all"
                 />
               </div>
 
+              {/* Category */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Type</label>
-                <select
-                  value={formData.transaction_type}
-                  onChange={(e) => setFormData({ ...formData, transaction_type: e.target.value as any })}
-                  className="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-3"
-                >
-                  <option value="expense">Expense</option>
-                  <option value="income">Income</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Category</label>
+                <label className="flex items-center text-sm font-semibold text-gray-900 dark:text-white mb-2">
+                  <Tag className="w-4 h-4 mr-1.5 text-blue-600 dark:text-blue-400" />
+                  Category
+                </label>
                 <select
                   value={formData.category_id}
                   onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-                  className="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-3"
+                  className="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white font-medium focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 transition-all"
                 >
-                  <option value="">Select category</option>
+                  <option value="">Select a category</option>
                   {categories.filter(c => c.type === formData.transaction_type).map(cat => (
                     <option key={cat.id} value={cat.id}>{cat.name}</option>
                   ))}
                 </select>
               </div>
 
+              {/* Description */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+                <label className="flex items-center text-sm font-semibold text-gray-900 dark:text-white mb-2">
+                  <FileText className="w-4 h-4 mr-1.5 text-blue-600 dark:text-blue-400" />
+                  Description
+                  <span className="ml-auto text-xs text-gray-500 dark:text-gray-400 font-normal">Optional</span>
+                </label>
                 <input
                   type="text"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-3"
+                  placeholder="What was this transaction for?"
+                  className="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 transition-all"
                 />
               </div>
 
+              {/* Merchant */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Merchant</label>
+                <label className="flex items-center text-sm font-semibold text-gray-900 dark:text-white mb-2">
+                  <Store className="w-4 h-4 mr-1.5 text-blue-600 dark:text-blue-400" />
+                  Merchant
+                  <span className="ml-auto text-xs text-gray-500 dark:text-gray-400 font-normal">Optional</span>
+                </label>
                 <input
                   type="text"
                   value={formData.merchant}
                   onChange={(e) => setFormData({ ...formData, merchant: e.target.value })}
-                  className="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-3"
+                  placeholder="e.g., Starbucks, Amazon"
+                  className="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 transition-all"
                 />
               </div>
 
-              <div className="flex justify-end space-x-3 mt-6">
+              {/* Action Buttons */}
+              <div className="flex flex-col-reverse md:flex-row gap-3 pt-4">
                 <button
                   type="button"
                   onClick={() => { setShowAddModal(false); setEditingTransaction(null); }}
-                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  className="flex-1 px-6 py-4 md:py-3.5 border-2 border-gray-300 dark:border-gray-600 rounded-xl text-base font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 active:scale-[0.98] transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+                  className="flex-1 px-6 py-4 md:py-3.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 dark:from-blue-500 dark:to-purple-500 dark:hover:from-blue-600 dark:hover:to-purple-600 rounded-xl shadow-lg shadow-blue-500/30 text-base font-bold text-white active:scale-[0.98] transition-all"
                 >
-                  {editingTransaction ? 'Update' : 'Add'} Transaction
+                  {editingTransaction ? '✓ Update' : '+ Add'} Transaction
                 </button>
               </div>
             </form>
