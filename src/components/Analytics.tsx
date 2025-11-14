@@ -33,6 +33,46 @@ export default function Analytics() {
   useEffect(() => {
     if (user) {
       loadData();
+
+      // Subscribe to real-time changes for transactions
+      const transactionSubscription = supabase
+        .channel('analytics-transactions')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'transactions',
+            filter: `user_id=eq.${user.id}`
+          },
+          () => {
+            loadData();
+          }
+        )
+        .subscribe();
+
+      // Subscribe to real-time changes for categories
+      const categorySubscription = supabase
+        .channel('analytics-categories')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'categories',
+            filter: `user_id=eq.${user.id}`
+          },
+          () => {
+            loadData();
+          }
+        )
+        .subscribe();
+
+      // Cleanup subscriptions on unmount
+      return () => {
+        transactionSubscription.unsubscribe();
+        categorySubscription.unsubscribe();
+      };
     } else {
       setTransactions([]);
       setCategories([]);

@@ -43,6 +43,47 @@ export default function Dashboard() {
   useEffect(() => {
     if (user) {
       loadData();
+
+      // Subscribe to real-time changes for transactions
+      const transactionSubscription = supabase
+        .channel('dashboard-transactions')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'transactions',
+            filter: `user_id=eq.${user.id}`
+          },
+          () => {
+            // Reload data when transactions change
+            loadData();
+          }
+        )
+        .subscribe();
+
+      // Subscribe to real-time changes for categories
+      const categorySubscription = supabase
+        .channel('dashboard-categories')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'categories',
+            filter: `user_id=eq.${user.id}`
+          },
+          () => {
+            loadData();
+          }
+        )
+        .subscribe();
+
+      // Cleanup subscriptions on unmount
+      return () => {
+        transactionSubscription.unsubscribe();
+        categorySubscription.unsubscribe();
+      };
     } else {
       setTransactions([]);
       setCategories([]);
