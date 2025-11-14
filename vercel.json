@@ -1,11 +1,15 @@
 {
   "buildCommand": "pnpm build:prod",
   "outputDirectory": "dist",
-  "framework": null,
-  "rewrites": [
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "routes": [
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ],
   "headers": [
@@ -19,7 +23,7 @@
       ]
     },
     {
-      "source": "/(.*\\.(?:js|css))",
+      "source": "/(.*\\.(?:js|css|png|svg|jpg|jpeg|gif|webp|woff|woff2))",
       "headers": [
         {
           "key": "Cache-Control",
