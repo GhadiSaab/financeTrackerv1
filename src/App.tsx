@@ -39,15 +39,15 @@ function Navigation() {
   ];
 
   return (
-    <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-40 backdrop-blur-lg bg-opacity-90 dark:bg-opacity-90 transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
+    <nav className="bg-white/80 dark:bg-gray-950/80 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-40 backdrop-blur-xl transition-colors">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+        <div className="flex justify-between h-14 md:h-16">
           <div className="flex items-center flex-1">
             <div className="flex-shrink-0 flex items-center">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                <TrendingUp className="w-6 h-6 text-white" />
+              <div className="w-9 h-9 md:w-10 md:h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg md:rounded-xl flex items-center justify-center shadow-lg">
+                <TrendingUp className="w-5 h-5 md:w-6 md:h-6 text-white" />
               </div>
-              <span className="ml-3 text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+              <span className="ml-2 md:ml-3 text-lg md:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
                 FinanceTracker
               </span>
             </div>
@@ -143,14 +143,14 @@ function AuthCallback() {
 
 function AppContent() {
   const { user } = useAuth();
-  
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors">
-      <Toaster 
+    <div className="min-h-screen bg-gray-50 dark:bg-black transition-colors">
+      <Toaster
         position="top-right"
         toastOptions={{
           duration: 3000,
-          className: 'dark:bg-gray-800 dark:text-white',
+          className: 'dark:bg-gray-900 dark:text-white dark:border dark:border-gray-800',
           style: {
             background: 'var(--toast-bg)',
             color: 'var(--toast-color)',
@@ -172,13 +172,13 @@ function AppContent() {
         }}
       />
       <Navigation />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-8">
+      <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 md:py-6 pb-20 md:pb-8">
         <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
-          
+
           {/* Protected Routes */}
           <Route path="/" element={<HomeRoute />} />
           <Route

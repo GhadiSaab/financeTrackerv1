@@ -1,33 +1,34 @@
 // @ts-nocheck
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { CustomTooltip, getChartColors } from './ChartComponents';
 import { supabase, Transaction, Category, Investment } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { 
-  DollarSign, 
-  TrendingUp, 
-  TrendingDown, 
-  Wallet, 
+import {
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
+  Wallet,
   AlertCircle,
   Lightbulb,
   ArrowUpRight,
   ArrowDownRight
 } from 'lucide-react';
-import { 
-  LineChart, 
-  Line, 
-  AreaChart, 
-  Area, 
-  PieChart, 
-  Pie, 
-  Cell, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
-  ResponsiveContainer 
+import {
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
 } from 'recharts';
 
 export default function Dashboard() {
@@ -139,8 +140,11 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mx-auto mb-4"></div>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Loading your dashboard...</p>
+        </div>
       </div>
     );
   }
@@ -190,181 +194,207 @@ export default function Dashboard() {
   }).filter(c => c.value > 0).sort((a, b) => b.value - a.value).slice(0, 6);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Financial Dashboard</h1>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Overview of your financial activity for {new Date().toLocaleDateString('en', { month: 'long', year: 'numeric' })}
+      <div className="px-1">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Financial Dashboard</h1>
+        <p className="mt-1 text-xs md:text-sm text-gray-600 dark:text-gray-400">
+          {new Date().toLocaleDateString('en', { month: 'long', year: 'numeric' })}
         </p>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <TrendingUp className="h-6 w-6 text-green-600" />
+      {/* Summary Cards - Mobile Optimized */}
+      <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
+        <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border border-green-200 dark:border-green-800/50 rounded-xl md:rounded-2xl shadow-sm">
+          <div className="p-3 md:p-5">
+            <div className="flex items-start justify-between mb-2">
+              <div className="p-2 bg-green-100 dark:bg-green-900/40 rounded-lg">
+                <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-green-600 dark:text-green-400" />
               </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Total Income</dt>
-                  <dd className="flex items-baseline">
-                    <div className="text-2xl font-semibold text-gray-900 dark:text-gray-100">${totalIncome.toFixed(2)}</div>
-                  </dd>
-                </dl>
-              </div>
+            </div>
+            <div>
+              <p className="text-xs md:text-sm font-medium text-green-700 dark:text-green-300 mb-1">Income</p>
+              <p className="text-lg md:text-2xl font-bold text-green-900 dark:text-green-100">${totalIncome.toFixed(0)}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <TrendingDown className="h-6 w-6 text-red-600" />
+        <div className="bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950/30 dark:to-rose-950/30 border border-red-200 dark:border-red-800/50 rounded-xl md:rounded-2xl shadow-sm">
+          <div className="p-3 md:p-5">
+            <div className="flex items-start justify-between mb-2">
+              <div className="p-2 bg-red-100 dark:bg-red-900/40 rounded-lg">
+                <TrendingDown className="h-4 w-4 md:h-5 md:w-5 text-red-600 dark:text-red-400" />
               </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Total Expenses</dt>
-                  <dd className="flex items-baseline">
-                    <div className="text-2xl font-semibold text-gray-900 dark:text-gray-100">${totalExpenses.toFixed(2)}</div>
-                  </dd>
-                </dl>
-              </div>
+            </div>
+            <div>
+              <p className="text-xs md:text-sm font-medium text-red-700 dark:text-red-300 mb-1">Expenses</p>
+              <p className="text-lg md:text-2xl font-bold text-red-900 dark:text-red-100">${totalExpenses.toFixed(0)}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <Wallet className="h-6 w-6 text-blue-600" />
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200 dark:border-blue-800/50 rounded-xl md:rounded-2xl shadow-sm">
+          <div className="p-3 md:p-5">
+            <div className="flex items-start justify-between mb-2">
+              <div className="p-2 bg-blue-100 dark:bg-blue-900/40 rounded-lg">
+                <Wallet className="h-4 w-4 md:h-5 md:w-5 text-blue-600 dark:text-blue-400" />
               </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Net Savings</dt>
-                  <dd className="flex items-baseline">
-                    <div className={`text-2xl font-semibold ${netSavings >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      ${netSavings.toFixed(2)}
-                    </div>
-                  </dd>
-                </dl>
-              </div>
+            </div>
+            <div>
+              <p className="text-xs md:text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">Savings</p>
+              <p className={`text-lg md:text-2xl font-bold ${netSavings >= 0 ? 'text-blue-900 dark:text-blue-100' : 'text-red-600 dark:text-red-400'}`}>
+                ${netSavings.toFixed(0)}
+              </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <DollarSign className="h-6 w-6 text-purple-600" />
+        <div className="bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-950/30 dark:to-violet-950/30 border border-purple-200 dark:border-purple-800/50 rounded-xl md:rounded-2xl shadow-sm">
+          <div className="p-3 md:p-5">
+            <div className="flex items-start justify-between mb-2">
+              <div className="p-2 bg-purple-100 dark:bg-purple-900/40 rounded-lg">
+                <DollarSign className="h-4 w-4 md:h-5 md:w-5 text-purple-600 dark:text-purple-400" />
               </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Savings Rate</dt>
-                  <dd className="flex items-baseline">
-                    <div className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{savingsRate}%</div>
-                  </dd>
-                </dl>
-              </div>
+            </div>
+            <div>
+              <p className="text-xs md:text-sm font-medium text-purple-700 dark:text-purple-300 mb-1">Rate</p>
+              <p className="text-lg md:text-2xl font-bold text-purple-900 dark:text-purple-100">{savingsRate}%</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Monthly Trends */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Income vs Expenses</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={monthlyData}>
-              <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
-              <XAxis stroke={chartColors.text} dataKey="month" />
-              <YAxis stroke={chartColors.text} />
-              <Tooltip formatter={(value) => `$${Number(value).toFixed(2)}`} />
-              <Legend />
-              <Area type="monotone" dataKey="income" stackId="1" stroke="#10b981" fill="#10b981" fillOpacity={0.6} name="Income" />
-              <Area type="monotone" dataKey="expenses" stackId="2" stroke="#ef4444" fill="#ef4444" fillOpacity={0.6} name="Expenses" />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
+      {/* Charts Row - Mobile Optimized */}
+      {monthlyData.length > 0 ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4">
+          {/* Monthly Trends */}
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-4 md:p-6 rounded-xl md:rounded-2xl shadow-sm">
+            <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-3 md:mb-4">Income vs Expenses</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <AreaChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
+                <XAxis stroke={chartColors.text} dataKey="month" tick={{ fontSize: 12 }} />
+                <YAxis stroke={chartColors.text} tick={{ fontSize: 12 }} />
+                <Tooltip
+                  formatter={(value) => `$${Number(value).toFixed(2)}`}
+                  contentStyle={{
+                    backgroundColor: resolvedTheme === 'dark' ? '#1f2937' : '#ffffff',
+                    border: `1px solid ${resolvedTheme === 'dark' ? '#374151' : '#e5e7eb'}`,
+                    borderRadius: '0.5rem'
+                  }}
+                />
+                <Legend wrapperStyle={{ fontSize: '12px' }} />
+                <Area type="monotone" dataKey="income" stackId="1" stroke="#10b981" fill="#10b981" fillOpacity={0.6} name="Income" />
+                <Area type="monotone" dataKey="expenses" stackId="2" stroke="#ef4444" fill="#ef4444" fillOpacity={0.6} name="Expenses" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
 
-        {/* Category Breakdown */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Spending by Category</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={categoryData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {categoryData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip formatter={(value) => `$${Number(value).toFixed(2)}`} />
-            </PieChart>
-          </ResponsiveContainer>
+          {/* Category Breakdown */}
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-4 md:p-6 rounded-xl md:rounded-2xl shadow-sm">
+            <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-3 md:mb-4">Spending by Category</h3>
+            {categoryData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  <Pie
+                    data={categoryData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {categoryData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(value) => `$${Number(value).toFixed(2)}`}
+                    contentStyle={{
+                      backgroundColor: resolvedTheme === 'dark' ? '#1f2937' : '#ffffff',
+                      border: `1px solid ${resolvedTheme === 'dark' ? '#374151' : '#e5e7eb'}`,
+                      borderRadius: '0.5rem'
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-[250px] text-gray-500 dark:text-gray-400">
+                <p className="text-sm">No category data available</p>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border border-blue-200 dark:border-blue-800/50 rounded-xl md:rounded-2xl p-8 text-center">
+          <div className="max-w-md mx-auto">
+            <PieChart className="w-12 h-12 mx-auto mb-4 text-blue-600 dark:text-blue-400" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No Transaction Data Yet</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Start tracking your finances by adding your first transaction!
+            </p>
+            <Link
+              to="/input"
+              className="inline-block px-6 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-medium rounded-lg transition-colors"
+            >
+              Add Transaction
+            </Link>
+          </div>
+        </div>
+      )}
 
-      {/* AI Insights */}
+      {/* AI Insights - Mobile Optimized */}
       {insights && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4">
           {/* Insights */}
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-            <div className="flex items-center mb-4">
-              <AlertCircle className="w-5 h-5 text-blue-600 mr-2" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Financial Insights</h3>
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-4 md:p-6 rounded-xl md:rounded-2xl shadow-sm">
+            <div className="flex items-center mb-3 md:mb-4">
+              <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg mr-3">
+                <AlertCircle className="w-4 h-4 md:w-5 md:h-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white">Financial Insights</h3>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2 md:space-y-3">
               {insights.insights?.slice(0, 3).map((insight: any, idx: number) => (
-                <div key={idx} className={`p-4 rounded-lg border-l-4 ${
-                  insight.type === 'success' ? 'bg-green-50 dark:bg-green-900/20 border-green-500 dark:border-green-400' :
-                  insight.type === 'warning' ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-500 dark:border-yellow-400' :
-                  insight.type === 'alert' ? 'bg-red-50 dark:bg-red-900/20 border-red-500 dark:border-red-400' :
-                  'bg-blue-50 dark:bg-blue-900/20 border-blue-500 dark:border-blue-400'
+                <div key={idx} className={`p-3 md:p-4 rounded-lg border-l-4 ${
+                  insight.type === 'success' ? 'bg-green-50 dark:bg-green-950/30 border-green-500 dark:border-green-400' :
+                  insight.type === 'warning' ? 'bg-yellow-50 dark:bg-yellow-950/30 border-yellow-500 dark:border-yellow-400' :
+                  insight.type === 'alert' ? 'bg-red-50 dark:bg-red-950/30 border-red-500 dark:border-red-400' :
+                  'bg-blue-50 dark:bg-blue-950/30 border-blue-500 dark:border-blue-400'
                 }`}>
-                  <h4 className="font-medium text-gray-900 dark:text-gray-100">{insight.title}</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{insight.message}</p>
+                  <h4 className="font-semibold text-sm md:text-base text-gray-900 dark:text-white">{insight.title}</h4>
+                  <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 mt-1">{insight.message}</p>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Recommendations */}
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-            <div className="flex items-center mb-4">
-              <Lightbulb className="w-5 h-5 text-yellow-600 mr-2" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Money-Saving Tips</h3>
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-4 md:p-6 rounded-xl md:rounded-2xl shadow-sm">
+            <div className="flex items-center mb-3 md:mb-4">
+              <div className="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg mr-3">
+                <Lightbulb className="w-4 h-4 md:w-5 md:h-5 text-yellow-600 dark:text-yellow-400" />
+              </div>
+              <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white">Money-Saving Tips</h3>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2 md:space-y-3">
               {insights.recommendations?.map((rec: any, idx: number) => (
-                <div key={idx} className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                <div key={idx} className="p-3 md:p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700/50">
                   <div className="flex justify-between items-start mb-2">
-                    <h4 className="font-medium text-gray-900 dark:text-gray-100">{rec.title}</h4>
-                    <span className="text-sm font-semibold text-green-600 dark:text-green-400">
-                      Save ${rec.potential_savings}
+                    <h4 className="font-semibold text-sm md:text-base text-gray-900 dark:text-white">{rec.title}</h4>
+                    <span className="text-xs md:text-sm font-bold text-green-600 dark:text-green-400 whitespace-nowrap ml-2">
+                      +${rec.potential_savings}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">{rec.description}</p>
-                  <span className={`inline-block mt-2 text-xs px-2 py-1 rounded ${
-                    rec.difficulty === 'easy' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300' :
-                    rec.difficulty === 'medium' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300' :
-                    'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
+                  <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300">{rec.description}</p>
+                  <span className={`inline-block mt-2 text-xs px-2 py-1 rounded font-medium ${
+                    rec.difficulty === 'easy' ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300' :
+                    rec.difficulty === 'medium' ? 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300' :
+                    'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300'
                   }`}>
-                    {rec.difficulty} to implement
+                    {rec.difficulty}
                   </span>
                 </div>
               ))}
@@ -373,40 +403,50 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Recent Transactions */}
-      <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Recent Transactions</h3>
+      {/* Recent Transactions - Mobile Optimized */}
+      {currentMonthTransactions.length > 0 && (
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl md:rounded-2xl shadow-sm overflow-hidden">
+          <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-200 dark:border-gray-800">
+            <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white">Recent Transactions</h3>
+          </div>
+          <ul className="divide-y divide-gray-200 dark:divide-gray-800">
+            {currentMonthTransactions.slice(0, 5).map((transaction) => {
+              const category = categories.find(c => c.id === transaction.category_id);
+              return (
+                <li key={transaction.id} className="px-4 md:px-6 py-3 md:py-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center min-w-0 flex-1">
+                      <div
+                        className="w-9 h-9 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center flex-shrink-0"
+                        style={{ backgroundColor: category?.color + '20' }}
+                      >
+                        <span style={{ color: category?.color }}>
+                          {transaction.transaction_type === 'income' ? <ArrowUpRight className="w-4 h-4 md:w-5 md:h-5" /> : <ArrowDownRight className="w-4 h-4 md:w-5 md:h-5" />}
+                        </span>
+                      </div>
+                      <div className="ml-3 min-w-0">
+                        <p className="text-sm md:text-base font-medium text-gray-900 dark:text-white truncate">{transaction.description || 'Uncategorized'}</p>
+                        <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400">{category?.name} • {new Date(transaction.date).toLocaleDateString('en', { month: 'short', day: 'numeric' })}</p>
+                      </div>
+                    </div>
+                    <div className={`text-base md:text-lg font-bold flex-shrink-0 ${transaction.transaction_type === 'income' ? 'text-green-600 dark:text-green-400' : 'text-gray-900 dark:text-white'}`}>
+                      {transaction.transaction_type === 'income' ? '+' : '-'}${Number(transaction.amount).toFixed(0)}
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+          <div className="px-4 md:px-6 py-3 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-800">
+            <Link
+              to="/transactions"
+              className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+            >
+              View all transactions →
+            </Link>
+          </div>
         </div>
-        <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-          {currentMonthTransactions.slice(0, 5).map((transaction) => {
-            const category = categories.find(c => c.id === transaction.category_id);
-            return (
-              <li key={transaction.id} className="px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div 
-                      className="w-10 h-10 rounded-full flex items-center justify-center"
-                      style={{ backgroundColor: category?.color + '20' }}
-                    >
-                      <span style={{ color: category?.color }}>
-                        {transaction.transaction_type === 'income' ? <ArrowUpRight className="w-5 h-5" /> : <ArrowDownRight className="w-5 h-5" />}
-                      </span>
-                    </div>
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{transaction.description || 'Uncategorized'}</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{category?.name} • {new Date(transaction.date).toLocaleDateString()}</p>
-                    </div>
-                  </div>
-                  <div className={`text-lg font-semibold ${transaction.transaction_type === 'income' ? 'text-green-600' : 'text-gray-900 dark:text-gray-100'}`}>
-                    {transaction.transaction_type === 'income' ? '+' : '-'}${Number(transaction.amount).toFixed(2)}
-                  </div>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
+      )}
     </div>
   );
 }
