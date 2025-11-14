@@ -145,12 +145,12 @@ export default function DataInput() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Smart Data Input</h1>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Parse unstructured spending data using AI-powered text analysis
+      <div className="px-1">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Smart Input</h1>
+        <p className="mt-1 text-xs md:text-sm text-gray-600 dark:text-gray-400">
+          AI-powered transaction parsing - just paste your expenses!
         </p>
       </div>
 
@@ -161,33 +161,53 @@ export default function DataInput() {
       />
 
       {/* Input Section */}
-      <div className="bg-white dark:bg-gray-800 dark:bg-gray-800 p-6 rounded-lg shadow">
-        <div className="flex items-center mb-4">
-          <Sparkles className="w-5 h-5 text-blue-600 mr-2" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Enter Transaction Data</h3>
+      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-4 md:p-6 rounded-xl md:rounded-2xl shadow-sm">
+        <div className="flex items-center mb-3 md:mb-4">
+          <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg mr-3">
+            <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-blue-600 dark:text-blue-400" />
+          </div>
+          <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white">Enter Transaction Data</h3>
         </div>
-        
-        <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-          Paste your transaction data in any format. Each line should contain an amount and optionally a date, description, or merchant.
+
+        <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 mb-3 md:mb-4">
+          Type or paste your expenses - one per line. Include the amount and as much detail as you want!
         </p>
 
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Example formats:</label>
-          <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-md text-sm text-gray-700 dark:text-gray-300 space-y-1">
-            <p>$45.20 at Starbucks on 11/08/2025</p>
-            <p>Grocery shopping $85.50 11/02/2025</p>
-            <p>Paid $1200 for rent on Nov 1</p>
-            <p>Gas $50 Shell station</p>
-            <p>Restaurant dinner $75.30</p>
+          <label className="block text-xs md:text-sm font-semibold text-gray-900 dark:text-white mb-2">✨ Supported Formats:</label>
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200 dark:border-blue-800/50 p-3 md:p-4 rounded-lg text-xs md:text-sm space-y-1.5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5 md:gap-2">
+              <div className="font-mono text-gray-900 dark:text-gray-100">
+                <span className="text-blue-600 dark:text-blue-400">✓</span> $45.20 at Starbucks on 11/08/2025
+              </div>
+              <div className="font-mono text-gray-900 dark:text-gray-100">
+                <span className="text-blue-600 dark:text-blue-400">✓</span> Grocery shopping $85.50 Nov 12
+              </div>
+              <div className="font-mono text-gray-900 dark:text-gray-100">
+                <span className="text-blue-600 dark:text-blue-400">✓</span> Paid $1200 for rent yesterday
+              </div>
+              <div className="font-mono text-gray-900 dark:text-gray-100">
+                <span className="text-blue-600 dark:text-blue-400">✓</span> Gas $50 Shell station today
+              </div>
+              <div className="font-mono text-gray-900 dark:text-gray-100">
+                <span className="text-blue-600 dark:text-blue-400">✓</span> $75.30 restaurant dinner 11-10-2025
+              </div>
+              <div className="font-mono text-gray-900 dark:text-gray-100">
+                <span className="text-blue-600 dark:text-blue-400">✓</span> Coffee 4.50 dollars Nov 8th
+              </div>
+            </div>
+            <div className="pt-2 mt-2 border-t border-blue-200 dark:border-blue-800/50 text-xs text-gray-700 dark:text-gray-300">
+              <strong className="text-gray-900 dark:text-white">Tip:</strong> Dates can be MM/DD/YYYY, Nov 10, yesterday, today, etc. Categories are auto-detected!
+            </div>
           </div>
         </div>
 
         <textarea
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
-          placeholder="Paste your transaction data here...&#10;&#10;Example:&#10;$45.20 at Starbucks on 11/08/2025&#10;Grocery shopping $85.50 11/02/2025&#10;Paid $1200 for rent on Nov 1"
-          rows={10}
-          className="w-full rounded-xl border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 shadow-sm focus:border-blue-500 focus:ring-blue-500 font-mono text-base p-4"
+          placeholder="Paste your expenses here... (one per line)&#10;&#10;Examples:&#10;$45.20 at Starbucks on 11/08/2025&#10;Grocery shopping $85.50 Nov 12&#10;Paid $1200 for rent yesterday&#10;Gas $50 Shell station today"
+          rows={8}
+          className="w-full rounded-xl border-2 border-gray-300 dark:border-gray-700 bg-white dark:bg-black text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-600 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 font-mono text-sm md:text-base p-3 md:p-4 transition-all"
         />
 
         <div className="mt-4 flex justify-end space-x-3">
@@ -219,27 +239,29 @@ export default function DataInput() {
 
       {/* Parse Stats */}
       {parseStats && (
-        <div className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 dark:border-blue-400 p-4 rounded">
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200 dark:border-blue-800/50 p-4 rounded-xl md:rounded-2xl">
           <div className="flex items-start">
-            <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 mr-3 mt-0.5" />
-            <div className="flex-1">
-              <h4 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">Parsing Results</h4>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                <div>
-                  <span className="text-blue-700 dark:text-blue-300">Total Parsed:</span>
-                  <span className="font-semibold text-blue-900 dark:text-blue-100 ml-2">{parseStats.total_parsed}</span>
+            <div className="p-2 bg-blue-100 dark:bg-blue-900/40 rounded-lg mr-3 flex-shrink-0">
+              <AlertCircle className="w-4 h-4 md:w-5 md:h-5 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h4 className="text-sm md:text-base font-semibold text-blue-900 dark:text-blue-100 mb-3">Parsing Results</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 text-xs md:text-sm">
+                <div className="bg-white/50 dark:bg-black/20 p-2 rounded-lg">
+                  <div className="text-blue-700 dark:text-blue-300 mb-1">Total Parsed</div>
+                  <div className="text-lg md:text-xl font-bold text-blue-900 dark:text-blue-100">{parseStats.total_parsed}</div>
                 </div>
-                <div>
-                  <span className="text-blue-700 dark:text-blue-300">High Confidence:</span>
-                  <span className="font-semibold text-blue-900 dark:text-blue-100 ml-2">{parseStats.high_confidence}</span>
+                <div className="bg-white/50 dark:bg-black/20 p-2 rounded-lg">
+                  <div className="text-green-700 dark:text-green-300 mb-1">High Confidence</div>
+                  <div className="text-lg md:text-xl font-bold text-green-900 dark:text-green-100">{parseStats.high_confidence}</div>
                 </div>
-                <div>
-                  <span className="text-blue-700 dark:text-blue-300">Needs Review:</span>
-                  <span className="font-semibold text-blue-900 dark:text-blue-100 ml-2">{parseStats.needs_review}</span>
+                <div className="bg-white/50 dark:bg-black/20 p-2 rounded-lg">
+                  <div className="text-yellow-700 dark:text-yellow-300 mb-1">Needs Review</div>
+                  <div className="text-lg md:text-xl font-bold text-yellow-900 dark:text-yellow-100">{parseStats.needs_review}</div>
                 </div>
-                <div>
-                  <span className="text-blue-700 dark:text-blue-300">Duplicates:</span>
-                  <span className="font-semibold text-blue-900 dark:text-blue-100 ml-2">{parseStats.potential_duplicates}</span>
+                <div className="bg-white/50 dark:bg-black/20 p-2 rounded-lg">
+                  <div className="text-red-700 dark:text-red-300 mb-1">Duplicates</div>
+                  <div className="text-lg md:text-xl font-bold text-red-900 dark:text-red-100">{parseStats.potential_duplicates}</div>
                 </div>
               </div>
             </div>
@@ -249,13 +271,16 @@ export default function DataInput() {
 
       {/* Parsed Transactions */}
       {parsedTransactions.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Parsed Transactions</h3>
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl md:rounded-2xl shadow-sm overflow-hidden">
+          <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-200 dark:border-gray-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div>
+              <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white">Parsed Transactions</h3>
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">Review and edit before importing</p>
+            </div>
             <button
               onClick={handleImport}
               disabled={importing}
-              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50"
+              className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 disabled:opacity-50 transition-colors"
             >
               {importing ? (
                 <>
@@ -272,22 +297,22 @@ export default function DataInput() {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className="bg-gray-50 dark:bg-gray-900">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
+              <thead className="bg-gray-50 dark:bg-gray-950">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Description</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Merchant</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Category</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Type</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Amount</th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Confidence</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Actions</th>
+                  <th className="px-3 md:px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Date</th>
+                  <th className="px-3 md:px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Description</th>
+                  <th className="px-3 md:px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Merchant</th>
+                  <th className="px-3 md:px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Category</th>
+                  <th className="px-3 md:px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Type</th>
+                  <th className="px-3 md:px-6 py-3 text-right text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Amount</th>
+                  <th className="px-3 md:px-6 py-3 text-center text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Confidence</th>
+                  <th className="px-3 md:px-6 py-3 text-right text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Actions</th>
                 </tr>
               </thead>
-              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+              <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
                 {parsedTransactions.map((transaction, index) => (
-                  <tr key={index} className={`hover:bg-gray-50 dark:hover:bg-gray-700 ${transaction.confidence < 0.5 ? 'bg-yellow-50 dark:bg-yellow-900/20' : ''}`}>
+                  <tr key={index} className={`hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors ${transaction.confidence < 0.5 ? 'bg-yellow-50 dark:bg-yellow-950/30' : ''}`}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                       <input
                         type="date"
