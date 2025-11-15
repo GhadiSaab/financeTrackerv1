@@ -3,35 +3,86 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
-  <meta name="description" content="Track your expenses, manage your budget, and get AI-powered financial insights" />
-  <meta name="theme-color" content="#3b82f6" />
+
+  <!-- Viewport -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
+
+  <!-- Primary Meta Tags -->
+  <title>Personal Finance Tracker - Smart Money Management</title>
+  <meta name="title" content="Personal Finance Tracker - Smart Money Management" />
+  <meta name="description" content="Track your expenses, manage your budget, and get AI-powered financial insights. Beautiful mobile-first design with offline support." />
+  <meta name="keywords" content="finance tracker, budget app, expense tracker, money management, personal finance, pwa" />
+  <meta name="author" content="Finance Tracker" />
+
+  <!-- Theme Color -->
+  <meta name="theme-color" content="#3b82f6" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#1e40af" media="(prefers-color-scheme: dark)" />
+
+  <!-- PWA Meta Tags -->
   <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="application-name" content="FinanceTracker" />
+
+  <!-- Apple iOS Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="FinanceTracker" />
-  
-  <title>Personal Finance Tracker</title>
-  
+
+  <!-- Microsoft Windows Meta Tags -->
+  <meta name="msapplication-TileColor" content="#3b82f6" />
+  <meta name="msapplication-tap-highlight" content="no" />
+  <meta name="msapplication-starturl" content="/" />
+
   <!-- PWA Manifest -->
-  <link rel="manifest" href="/manifest.json" />
-  
+  <link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
+
   <!-- Icons -->
   <link rel="icon" type="image/svg+xml" href="/icon.svg" />
-  <link rel="apple-touch-icon" href="/icon.svg" />
-  
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="icon" type="image/svg+xml" sizes="32x32" href="/icon.svg" />
+  <link rel="icon" type="image/svg+xml" sizes="16x16" href="/icon.svg" />
+
+  <!-- Additional PWA Icons -->
+  <link rel="apple-touch-icon" sizes="152x152" href="/icon-152.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="apple-touch-icon" sizes="167x167" href="/icon-152.png" />
+
+  <!-- Splash Screens for iOS -->
+  <meta name="apple-mobile-web-app-title" content="FinanceTracker" />
+
   <!-- Service Worker Registration -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js')
           .then((registration) => {
-            console.log('SW registered:', registration);
+            console.log('✅ Service Worker registered successfully:', registration.scope);
+
+            // Check for updates periodically
+            setInterval(() => {
+              registration.update();
+            }, 60000); // Check every minute
           })
           .catch((error) => {
-            console.log('SW registration failed:', error);
+            console.error('❌ Service Worker registration failed:', error);
           });
       });
     }
+
+    // PWA Install Prompt
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      console.log('💾 PWA Install prompt ready');
+
+      // Store the event for later use
+      window.deferredPrompt = deferredPrompt;
+    });
+
+    window.addEventListener('appinstalled', () => {
+      console.log('✅ PWA was installed successfully');
+      deferredPrompt = null;
+    });
   </script>
 </head>
 

@@ -23,6 +23,7 @@ import Analytics from './components/Analytics';
 import Investments from './components/Investments';
 import Reports from './components/Reports';
 import DataInput from './components/DataInput';
+import PWAInstallPrompt from './components/PWAInstallPrompt';
 import './App.css';
 
 function Navigation() {
@@ -232,6 +233,7 @@ function AppContent() {
         </Routes>
       </main>
       {user && <MobileNav />}
+      <PWAInstallPrompt />
     </div>
   );
 }
