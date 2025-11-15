@@ -102,26 +102,26 @@ export default function Dashboard() {
 
     try {
       setLoading(true);
-      
+
       // Load transactions
       const { data: transData } = await supabase
         .from('transactions')
         .select('*')
         .eq('user_id', user.id)
         .order('date', { ascending: false });
-      
+
       // Load categories
       const { data: catData } = await supabase
         .from('categories')
         .select('*')
         .eq('user_id', user.id);
-      
+
       // Load investments
       const { data: invData } = await supabase
         .from('investments')
         .select('*')
         .eq('user_id', user.id);
-      
+
       if (transData) setTransactions(transData);
       if (catData) setCategories(catData);
       if (invData) setInvestments(invData);
@@ -131,7 +131,7 @@ export default function Dashboard() {
         const { data: insightsData } = await supabase.functions.invoke('ai-insights', {
           body: { transactions: transData, categories: catData, investments: invData }
         });
-        
+
         if (insightsData?.data) {
           setInsights(insightsData.data);
         }
@@ -143,6 +143,28 @@ export default function Dashboard() {
     }
   };
 
+  // Calculate summary statistics - MUST BE BEFORE HOOKS
+  const currentMonth = new Date().toISOString().substring(0, 7);
+  const currentMonthTransactions = transactions.filter(t => t.date.startsWith(currentMonth));
+
+  const totalIncome = currentMonthTransactions
+    .filter(t => t.transaction_type === 'income')
+    .reduce((sum, t) => sum + Number(t.amount), 0);
+
+  const totalExpenses = currentMonthTransactions
+    .filter(t => t.transaction_type === 'expense')
+    .reduce((sum, t) => sum + Number(t.amount), 0);
+
+  const netSavings = totalIncome - totalExpenses;
+  const savingsRate = totalIncome > 0 ? (netSavings / totalIncome * 100).toFixed(1) : 0;
+
+  // Animated counters - HOOKS MUST BE CALLED UNCONDITIONALLY
+  const animatedIncome = useAnimatedCounter(totalIncome);
+  const animatedExpenses = useAnimatedCounter(totalExpenses);
+  const animatedSavings = useAnimatedCounter(netSavings);
+  const animatedSavingsRate = useAnimatedCounter(parseFloat(savingsRate));
+
+  // Loading state check AFTER all hooks
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -153,27 +175,6 @@ export default function Dashboard() {
       </div>
     );
   }
-
-  // Calculate summary statistics
-  const currentMonth = new Date().toISOString().substring(0, 7);
-  const currentMonthTransactions = transactions.filter(t => t.date.startsWith(currentMonth));
-  
-  const totalIncome = currentMonthTransactions
-    .filter(t => t.transaction_type === 'income')
-    .reduce((sum, t) => sum + Number(t.amount), 0);
-  
-  const totalExpenses = currentMonthTransactions
-    .filter(t => t.transaction_type === 'expense')
-    .reduce((sum, t) => sum + Number(t.amount), 0);
-  
-  const netSavings = totalIncome - totalExpenses;
-  const savingsRate = totalIncome > 0 ? (netSavings / totalIncome * 100).toFixed(1) : 0;
-
-  // Animated counters
-  const animatedIncome = useAnimatedCounter(totalIncome);
-  const animatedExpenses = useAnimatedCounter(totalExpenses);
-  const animatedSavings = useAnimatedCounter(netSavings);
-  const animatedSavingsRate = useAnimatedCounter(parseFloat(savingsRate));
 
   // Calculate previous month data for comparison
   const previousMonth = new Date();
