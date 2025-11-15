@@ -6,6 +6,8 @@ import SwipeableTransactionRow from './SwipeableTransactionRow';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { seedDefaultCategories } from '../lib/utils';
 import { useAuth } from '../contexts/AuthContext';
+import QuickFilters from './QuickFilters';
+import QuickAddButton from './QuickAddButton';
 
 export default function Transactions() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -17,6 +19,7 @@ export default function Transactions() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [loading, setLoading] = useState(true);
+  const [quickFilter, setQuickFilter] = useState('all');
   const isMobile = useIsMobile();
   const { user } = useAuth();
 
@@ -41,7 +44,7 @@ export default function Transactions() {
 
   useEffect(() => {
     applyFilters();
-  }, [transactions, searchTerm, filterType, filterCategory]);
+  }, [transactions, searchTerm, filterType, filterCategory, quickFilter]);
 
   const loadData = async (attemptSeed = false) => {
     if (!user) return;
@@ -83,8 +86,23 @@ export default function Transactions() {
   const applyFilters = () => {
     let filtered = [...transactions];
 
+    // Apply quick filters
+    if (quickFilter === 'expense' || quickFilter === 'income') {
+      filtered = filtered.filter(t => t.transaction_type === quickFilter);
+    } else if (quickFilter === 'today') {
+      const today = new Date().toISOString().split('T')[0];
+      filtered = filtered.filter(t => t.date === today);
+    } else if (quickFilter === 'week') {
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      filtered = filtered.filter(t => new Date(t.date) >= weekAgo);
+    } else if (quickFilter === 'month') {
+      const monthStart = new Date().toISOString().substring(0, 7);
+      filtered = filtered.filter(t => t.date.startsWith(monthStart));
+    }
+
     if (searchTerm) {
-      filtered = filtered.filter(t => 
+      filtered = filtered.filter(t =>
         t.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         t.merchant?.toLowerCase().includes(searchTerm.toLowerCase())
       );
@@ -248,6 +266,9 @@ export default function Transactions() {
           Add Transaction
         </button>
       </div>
+
+      {/* Quick Filters */}
+      <QuickFilters activeFilter={quickFilter} onFilterChange={setQuickFilter} />
 
       {/* Filters */}
       <div className="bg-white dark:bg-gray-800 dark:bg-gray-800 p-4 rounded-lg shadow space-y-4">
@@ -564,6 +585,23 @@ export default function Transactions() {
           </div>
         </div>
       )}
+
+      {/* Quick Add Button */}
+      <QuickAddButton
+        onAddTransaction={(type) => {
+          if (!user) {
+            toast.error('Please sign in to add transactions.');
+            return;
+          }
+          setFormData({
+            ...formData,
+            transaction_type: type,
+            date: new Date().toISOString().split('T')[0]
+          });
+          setEditingTransaction(null);
+          setShowAddModal(true);
+        }}
+      />
     </div>
   );
 }

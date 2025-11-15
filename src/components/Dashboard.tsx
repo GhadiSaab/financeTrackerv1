@@ -30,6 +30,11 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts';
+import { useAnimatedCounter } from '../hooks/useAnimatedCounter';
+import MonthlyComparison from './MonthlyComparison';
+import BudgetProgress from './BudgetProgress';
+import SmartInsights from './SmartInsights';
+import SpendingStreak from './SpendingStreak';
 
 export default function Dashboard() {
   const { resolvedTheme } = useTheme();
@@ -164,6 +169,36 @@ export default function Dashboard() {
   const netSavings = totalIncome - totalExpenses;
   const savingsRate = totalIncome > 0 ? (netSavings / totalIncome * 100).toFixed(1) : 0;
 
+  // Animated counters
+  const animatedIncome = useAnimatedCounter(totalIncome);
+  const animatedExpenses = useAnimatedCounter(totalExpenses);
+  const animatedSavings = useAnimatedCounter(netSavings);
+  const animatedSavingsRate = useAnimatedCounter(parseFloat(savingsRate));
+
+  // Calculate previous month data for comparison
+  const previousMonth = new Date();
+  previousMonth.setMonth(previousMonth.getMonth() - 1);
+  const prevMonthStr = previousMonth.toISOString().substring(0, 7);
+  const previousMonthTransactions = transactions.filter(t => t.date.startsWith(prevMonthStr));
+
+  const prevIncome = previousMonthTransactions
+    .filter(t => t.transaction_type === 'income')
+    .reduce((sum, t) => sum + Number(t.amount), 0);
+
+  const prevExpenses = previousMonthTransactions
+    .filter(t => t.transaction_type === 'expense')
+    .reduce((sum, t) => sum + Number(t.amount), 0);
+
+  const prevSavings = prevIncome - prevExpenses;
+
+  // Calculate category spending for budget progress
+  const categorySpending: { [key: string]: number } = {};
+  currentMonthTransactions.forEach(t => {
+    if (t.category_id && t.transaction_type === 'expense') {
+      categorySpending[t.category_id] = (categorySpending[t.category_id] || 0) + Number(t.amount);
+    }
+  });
+
   // Prepare chart data
   const monthlyData: any[] = [];
   const months = [...new Set(transactions.map(t => t.date.substring(0, 7)))].sort().slice(-6);
@@ -214,7 +249,7 @@ export default function Dashboard() {
             </div>
             <div>
               <p className="text-xs md:text-sm font-medium text-green-700 dark:text-green-300 mb-1">Income</p>
-              <p className="text-lg md:text-2xl font-bold text-green-900 dark:text-green-100">${totalIncome.toFixed(0)}</p>
+              <p className="text-lg md:text-2xl font-bold text-green-900 dark:text-green-100">${animatedIncome.toFixed(0)}</p>
             </div>
           </div>
         </div>
@@ -228,7 +263,7 @@ export default function Dashboard() {
             </div>
             <div>
               <p className="text-xs md:text-sm font-medium text-red-700 dark:text-red-300 mb-1">Expenses</p>
-              <p className="text-lg md:text-2xl font-bold text-red-900 dark:text-red-100">${totalExpenses.toFixed(0)}</p>
+              <p className="text-lg md:text-2xl font-bold text-red-900 dark:text-red-100">${animatedExpenses.toFixed(0)}</p>
             </div>
           </div>
         </div>
@@ -243,7 +278,7 @@ export default function Dashboard() {
             <div>
               <p className="text-xs md:text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">Savings</p>
               <p className={`text-lg md:text-2xl font-bold ${netSavings >= 0 ? 'text-blue-900 dark:text-blue-100' : 'text-red-600 dark:text-red-400'}`}>
-                ${netSavings.toFixed(0)}
+                ${animatedSavings.toFixed(0)}
               </p>
             </div>
           </div>
@@ -258,7 +293,7 @@ export default function Dashboard() {
             </div>
             <div>
               <p className="text-xs md:text-sm font-medium text-purple-700 dark:text-purple-300 mb-1">Rate</p>
-              <p className="text-lg md:text-2xl font-bold text-purple-900 dark:text-purple-100">{savingsRate}%</p>
+              <p className="text-lg md:text-2xl font-bold text-purple-900 dark:text-purple-100">{animatedSavingsRate}%</p>
             </div>
           </div>
         </div>
@@ -391,6 +426,31 @@ export default function Dashboard() {
               Add Transaction
             </Link>
           </div>
+        </div>
+      )}
+
+      {/* New Widgets Section */}
+      {transactions.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4">
+          {/* Monthly Comparison */}
+          <MonthlyComparison
+            currentMonth={{ income: totalIncome, expenses: totalExpenses, savings: netSavings }}
+            previousMonth={{ income: prevIncome, expenses: prevExpenses, savings: prevSavings }}
+          />
+
+          {/* Spending Streak */}
+          <SpendingStreak transactions={transactions} />
+        </div>
+      )}
+
+      {/* Budget Progress & Smart Insights */}
+      {transactions.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4">
+          {/* Budget Progress */}
+          <BudgetProgress categories={categories} spending={categorySpending} />
+
+          {/* Smart Insights */}
+          <SmartInsights transactions={currentMonthTransactions} categories={categories} />
         </div>
       )}
 
