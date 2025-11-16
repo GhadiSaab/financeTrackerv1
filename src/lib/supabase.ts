@@ -26,6 +26,7 @@ export interface Category {
   icon: string;
   budget_limit: number;
   type: 'income' | 'expense';
+  is_investment_category: boolean;
   created_at: string;
 }
 
@@ -59,4 +60,49 @@ export interface UserSettings {
   setting_key: string;
   setting_value: any;
   updated_at: string;
+}
+
+export interface ConnectedAccount {
+  id: string;
+  user_id: string;
+  provider_name: string;
+  account_name: string;
+  account_type: string;
+  is_active: boolean;
+  last_synced_at: string | null;
+  sync_frequency: string;
+  metadata: any;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AccountHolding {
+  id: string;
+  connected_account_id: string;
+  user_id: string;
+  symbol: string;
+  asset_name: string;
+  quantity: number;
+  average_cost: number;
+  current_price: number;
+  current_value: number;
+  gain_loss: number;
+  gain_loss_percent: number;
+  last_updated: string;
+  created_at: string;
+}
+
+export interface AccountTransaction {
+  id: string;
+  connected_account_id: string;
+  user_id: string;
+  transaction_type: string;
+  symbol: string | null;
+  quantity: number | null;
+  price: number | null;
+  total_amount: number;
+  fees: number;
+  transaction_date: string;
+  notes: string | null;
+  created_at: string;
 }

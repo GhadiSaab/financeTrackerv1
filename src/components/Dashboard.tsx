@@ -18,6 +18,8 @@ import {
 import {
   LineChart,
   Line,
+  BarChart,
+  Bar,
   AreaChart,
   Area,
   PieChart,
@@ -28,7 +30,8 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer
+  ResponsiveContainer,
+  ComposedChart
 } from 'recharts';
 import { useAnimatedCounter } from '../hooks/useAnimatedCounter';
 import MonthlyComparison from './MonthlyComparison';
@@ -152,7 +155,10 @@ export default function Dashboard() {
     .reduce((sum, t) => sum + Number(t.amount), 0);
 
   const totalExpenses = currentMonthTransactions
-    .filter(t => t.transaction_type === 'expense')
+    .filter(t => {
+      const category = categories.find(c => c.id === t.category_id);
+      return t.transaction_type === 'expense' && !category?.is_investment_category;
+    })
     .reduce((sum, t) => sum + Number(t.amount), 0);
 
   const netSavings = totalIncome - totalExpenses;
@@ -187,16 +193,22 @@ export default function Dashboard() {
     .reduce((sum, t) => sum + Number(t.amount), 0);
 
   const prevExpenses = previousMonthTransactions
-    .filter(t => t.transaction_type === 'expense')
+    .filter(t => {
+      const category = categories.find(c => c.id === t.category_id);
+      return t.transaction_type === 'expense' && !category?.is_investment_category;
+    })
     .reduce((sum, t) => sum + Number(t.amount), 0);
 
   const prevSavings = prevIncome - prevExpenses;
 
-  // Calculate category spending for budget progress
+  // Calculate category spending for budget progress (excluding investment categories)
   const categorySpending: { [key: string]: number } = {};
   currentMonthTransactions.forEach(t => {
     if (t.category_id && t.transaction_type === 'expense') {
-      categorySpending[t.category_id] = (categorySpending[t.category_id] || 0) + Number(t.amount);
+      const category = categories.find(c => c.id === t.category_id);
+      if (!category?.is_investment_category) {
+        categorySpending[t.category_id] = (categorySpending[t.category_id] || 0) + Number(t.amount);
+      }
     }
   });
 
@@ -207,8 +219,11 @@ export default function Dashboard() {
   months.forEach(month => {
     const monthTrans = transactions.filter(t => t.date.startsWith(month));
     const income = monthTrans.filter(t => t.transaction_type === 'income').reduce((s, t) => s + Number(t.amount), 0);
-    const expenses = monthTrans.filter(t => t.transaction_type === 'expense').reduce((s, t) => s + Number(t.amount), 0);
-    
+    const expenses = monthTrans.filter(t => {
+      const category = categories.find(c => c.id === t.category_id);
+      return t.transaction_type === 'expense' && !category?.is_investment_category;
+    }).reduce((s, t) => s + Number(t.amount), 0);
+
     monthlyData.push({
       month: new Date(month + '-01').toLocaleDateString('en', { month: 'short' }),
       income,
@@ -217,17 +232,19 @@ export default function Dashboard() {
     });
   });
 
-  // Category breakdown
-  const categoryData = categories.map(cat => {
-    const total = currentMonthTransactions
-      .filter(t => t.category_id === cat.id)
-      .reduce((sum, t) => sum + Number(t.amount), 0);
-    return {
-      name: cat.name,
-      value: total,
-      color: cat.color
-    };
-  }).filter(c => c.value > 0).sort((a, b) => b.value - a.value).slice(0, 6);
+  // Category breakdown (excluding investment categories)
+  const categoryData = categories
+    .filter(cat => !cat.is_investment_category)
+    .map(cat => {
+      const total = currentMonthTransactions
+        .filter(t => t.category_id === cat.id)
+        .reduce((sum, t) => sum + Number(t.amount), 0);
+      return {
+        name: cat.name,
+        value: total,
+        color: cat.color
+      };
+    }).filter(c => c.value > 0).sort((a, b) => b.value - a.value).slice(0, 6);
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -307,7 +324,7 @@ export default function Dashboard() {
           <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-4 md:p-6 rounded-xl md:rounded-2xl shadow-sm">
             <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-3 md:mb-4">Income vs Expenses</h3>
             <ResponsiveContainer width="100%" height={250}>
-              <AreaChart data={monthlyData}>
+              <ComposedChart data={monthlyData}>
                 <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
                 <XAxis stroke={chartColors.text} dataKey="month" tick={{ fontSize: 12 }} />
                 <YAxis stroke={chartColors.text} tick={{ fontSize: 12 }} />
@@ -320,9 +337,10 @@ export default function Dashboard() {
                   }}
                 />
                 <Legend wrapperStyle={{ fontSize: '12px' }} />
-                <Area type="monotone" dataKey="income" stackId="1" stroke="#10b981" fill="#10b981" fillOpacity={0.6} name="Income" />
-                <Area type="monotone" dataKey="expenses" stackId="2" stroke="#ef4444" fill="#ef4444" fillOpacity={0.6} name="Expenses" />
-              </AreaChart>
+                <Bar dataKey="income" fill="#10b981" fillOpacity={0.8} name="Income" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="expenses" fill="#ef4444" fillOpacity={0.8} name="Expenses" radius={[8, 8, 0, 0]} />
+                <Line type="monotone" dataKey="savings" stroke="#3b82f6" strokeWidth={3} dot={{ r: 5 }} name="Net Savings" />
+              </ComposedChart>
             </ResponsiveContainer>
           </div>
 

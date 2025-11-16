@@ -1,13 +1,15 @@
 // @ts-nocheck
 import { useEffect, useState } from 'react';
 import { supabase, Investment } from '../lib/supabase';
-import { Plus, Pencil, Trash2, TrendingUp, TrendingDown } from 'lucide-react';
+import { Plus, Pencil, Trash2, TrendingUp, TrendingDown, Link as LinkIcon } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
+import ConnectedAccounts from './ConnectedAccounts';
 
 export default function Investments() {
   const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState<'manual' | 'connected'>('manual');
   const [investments, setInvestments] = useState<Investment[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -165,19 +167,53 @@ export default function Investments() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Investment Portfolio</h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Track your investments and portfolio performance</p>
         </div>
-        <button
-          onClick={() => { setShowAddModal(true); setEditingInvestment(null); resetForm(); }}
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Investment
-        </button>
+
+        {/* Tab Navigation */}
+        <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
+          <button
+            onClick={() => setActiveTab('manual')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              activeTab === 'manual'
+                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
+                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+            }`}
+          >
+            Manual Entries
+          </button>
+          <button
+            onClick={() => setActiveTab('connected')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+              activeTab === 'connected'
+                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
+                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+            }`}
+          >
+            <LinkIcon className="w-4 h-4" />
+            Connected Accounts
+          </button>
+        </div>
       </div>
+
+      {/* Content based on active tab */}
+      {activeTab === 'connected' ? (
+        <ConnectedAccounts />
+      ) : (
+        <>
+          {/* Add Investment Button */}
+          <div className="flex justify-end">
+            <button
+              onClick={() => { setShowAddModal(true); setEditingInvestment(null); resetForm(); }}
+              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Investment
+            </button>
+          </div>
 
       {/* Portfolio Summary */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -400,6 +436,8 @@ export default function Investments() {
             </form>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );
