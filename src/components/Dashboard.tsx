@@ -164,8 +164,20 @@ export default function Dashboard() {
   const netSavings = totalIncome - totalExpenses;
   const savingsRate = totalIncome > 0 ? (netSavings / totalIncome * 100).toFixed(1) : 0;
 
-  // Calculate total investments value
-  const totalInvestmentsValue = investments.reduce((sum, inv) => sum + Number(inv.current_value || 0), 0);
+  // Calculate total investments from both sources
+  // 1. Manual investments from investments table
+  const portfolioInvestmentsValue = investments.reduce((sum, inv) => sum + Number(inv.current_value || 0), 0);
+
+  // 2. Investment category transactions
+  const investmentTransactionsValue = currentMonthTransactions
+    .filter(t => {
+      const category = categories.find(c => c.id === t.category_id);
+      return category?.is_investment_category && t.transaction_type === 'expense';
+    })
+    .reduce((sum, t) => sum + Number(t.amount), 0);
+
+  // Total investments = portfolio + investment transactions
+  const totalInvestmentsValue = portfolioInvestmentsValue + investmentTransactionsValue;
 
   // Animated counters - HOOKS MUST BE CALLED UNCONDITIONALLY
   const animatedIncome = useAnimatedCounter(totalIncome);
@@ -173,6 +185,8 @@ export default function Dashboard() {
   const animatedSavings = useAnimatedCounter(netSavings);
   const animatedSavingsRate = useAnimatedCounter(parseFloat(savingsRate));
   const animatedInvestments = useAnimatedCounter(totalInvestmentsValue);
+  const animatedPortfolioInvestments = useAnimatedCounter(portfolioInvestmentsValue);
+  const animatedInvestmentTransactions = useAnimatedCounter(investmentTransactionsValue);
 
   // Loading state check AFTER all hooks
   if (loading) {
@@ -319,9 +333,23 @@ export default function Dashboard() {
             <div>
               <p className="text-xs md:text-sm font-medium text-purple-700 dark:text-purple-300 mb-1">Investments</p>
               <p className="text-lg md:text-2xl font-bold text-purple-900 dark:text-purple-100">${animatedInvestments.toFixed(0)}</p>
-              <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
-                {investments.length} position{investments.length !== 1 ? 's' : ''}
-              </p>
+              {portfolioInvestmentsValue > 0 && investmentTransactionsValue > 0 ? (
+                <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
+                  Portfolio: ${animatedPortfolioInvestments.toFixed(0)} • Transactions: ${animatedInvestmentTransactions.toFixed(0)}
+                </p>
+              ) : portfolioInvestmentsValue > 0 ? (
+                <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
+                  {investments.length} position{investments.length !== 1 ? 's' : ''}
+                </p>
+              ) : investmentTransactionsValue > 0 ? (
+                <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
+                  From investment transactions
+                </p>
+              ) : (
+                <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
+                  No investments yet
+                </p>
+              )}
             </div>
           </div>
         </div>
