@@ -302,11 +302,9 @@ export default function Dashboard() {
               <p className={`text-lg md:text-2xl font-bold ${netSavings >= 0 ? 'text-blue-900 dark:text-blue-100' : 'text-red-600 dark:text-red-400'}`}>
                 ${animatedSavings.toFixed(0)}
               </p>
-              {totalInvestmentsValue > 0 && (
-                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                  Invested: ${animatedInvestments.toFixed(0)}
-                </p>
-              )}
+              <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                {savingsRate}% of income
+              </p>
             </div>
           </div>
         </div>
@@ -315,12 +313,15 @@ export default function Dashboard() {
           <div className="p-3 md:p-5">
             <div className="flex items-start justify-between mb-2">
               <div className="p-2 bg-purple-100 dark:bg-purple-900/40 rounded-lg">
-                <DollarSign className="h-4 w-4 md:h-5 md:w-5 text-purple-600 dark:text-purple-400" />
+                <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-purple-600 dark:text-purple-400" />
               </div>
             </div>
             <div>
-              <p className="text-xs md:text-sm font-medium text-purple-700 dark:text-purple-300 mb-1">Rate</p>
-              <p className="text-lg md:text-2xl font-bold text-purple-900 dark:text-purple-100">{animatedSavingsRate}%</p>
+              <p className="text-xs md:text-sm font-medium text-purple-700 dark:text-purple-300 mb-1">Investments</p>
+              <p className="text-lg md:text-2xl font-bold text-purple-900 dark:text-purple-100">${animatedInvestments.toFixed(0)}</p>
+              <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
+                {investments.length} position{investments.length !== 1 ? 's' : ''}
+              </p>
             </div>
           </div>
         </div>
