@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { useState, useEffect } from 'react';
 import { supabase, Category } from '../lib/supabase';
-import { Sparkles, Upload, FileText, AlertCircle, CheckCircle, Loader } from 'lucide-react';
+import { Sparkles, Upload, FileText, AlertCircle, CheckCircle, Loader, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import VoiceInput from './VoiceInput';
 import { seedDefaultCategories } from '../lib/utils';
@@ -75,9 +75,16 @@ export default function DataInput() {
 
       if (data?.data) {
         console.log('Setting parsed transactions:', data.data.transactions);
-        setParsedTransactions(data.data.transactions);
+        // Fix dates - default to today if invalid
+        const today = new Date().toISOString().split('T')[0];
+        const fixedTransactions = data.data.transactions.map(t => ({
+          ...t,
+          date: t.date && t.date !== '' ? t.date : today,
+          suggested_category: t.suggested_category || categories[0]?.name || 'Uncategorized'
+        }));
+        setParsedTransactions(fixedTransactions);
         setParseStats(data.data.stats);
-        toast.success(`Successfully parsed ${data.data.transactions.length} transactions!`);
+        toast.success(`Successfully parsed ${fixedTransactions.length} transactions!`);
       }
     } catch (error) {
       console.error('Error parsing text:', error);
@@ -274,8 +281,8 @@ export default function DataInput() {
         <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl md:rounded-2xl shadow-sm overflow-hidden">
           <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-200 dark:border-gray-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div>
-              <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white">Parsed Transactions</h3>
-              <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">Review and edit before importing</p>
+              <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white">Review Transactions</h3>
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">Tap to edit • Swipe to adjust details</p>
             </div>
             <button
               onClick={handleImport}
@@ -296,98 +303,111 @@ export default function DataInput() {
             </button>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
-              <thead className="bg-gray-50 dark:bg-gray-950">
-                <tr>
-                  <th className="px-3 md:px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Date</th>
-                  <th className="px-3 md:px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Description</th>
-                  <th className="px-3 md:px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Merchant</th>
-                  <th className="px-3 md:px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Category</th>
-                  <th className="px-3 md:px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Type</th>
-                  <th className="px-3 md:px-6 py-3 text-right text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Amount</th>
-                  <th className="px-3 md:px-6 py-3 text-center text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Confidence</th>
-                  <th className="px-3 md:px-6 py-3 text-right text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
-                {parsedTransactions.map((transaction, index) => (
-                  <tr key={index} className={`hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors ${transaction.confidence < 0.5 ? 'bg-yellow-50 dark:bg-yellow-950/30' : ''}`}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                      <input
-                        type="date"
-                        value={transaction.date}
-                        onChange={(e) => updateTransaction(index, 'date', e.target.value)}
-                        className="text-sm border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2"
-                      />
-                    </td>
-                    <td className="px-6 py-4 text-sm">
-                      <input
-                        type="text"
-                        value={transaction.description}
-                        onChange={(e) => updateTransaction(index, 'description', e.target.value)}
-                        className="w-full text-sm border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2"
-                      />
-                    </td>
-                    <td className="px-6 py-4 text-sm">
-                      <input
-                        type="text"
-                        value={transaction.merchant}
-                        onChange={(e) => updateTransaction(index, 'merchant', e.target.value)}
-                        className="w-full text-sm border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2"
-                      />
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <select
-                        value={transaction.suggested_category}
-                        onChange={(e) => updateTransaction(index, 'suggested_category', e.target.value)}
-                        className="text-sm border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2"
-                      >
-                        {categories.map(cat => (
-                          <option key={cat.id} value={cat.name}>{cat.name}</option>
-                        ))}
-                      </select>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <select
-                        value={transaction.transaction_type}
-                        onChange={(e) => updateTransaction(index, 'transaction_type', e.target.value)}
-                        className="text-sm border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2"
-                      >
-                        <option value="expense">Expense</option>
-                        <option value="income">Income</option>
-                      </select>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={transaction.amount}
-                        onChange={(e) => updateTransaction(index, 'amount', parseFloat(e.target.value))}
-                        className="w-24 text-sm border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 text-right"
-                      />
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        transaction.confidence > 0.7 ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300' :
-                        transaction.confidence > 0.4 ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300' :
-                        'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
-                      }`}>
-                        {(transaction.confidence * 100).toFixed(0)}%
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                      <button
-                        onClick={() => removeTransaction(index)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        Remove
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          {/* Mobile-Friendly Card View */}
+          <div className="p-3 md:p-4 space-y-3">
+            {parsedTransactions.map((transaction, index) => (
+              <div
+                key={index}
+                className={`border-2 rounded-xl p-4 transition-all ${
+                  transaction.confidence < 0.5
+                    ? 'border-yellow-300 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-950/20'
+                    : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50'
+                }`}
+              >
+                {/* Confidence Badge */}
+                <div className="flex justify-between items-start mb-3">
+                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
+                    transaction.confidence > 0.7
+                      ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300'
+                      : transaction.confidence > 0.4
+                      ? 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300'
+                      : 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300'
+                  }`}>
+                    {transaction.confidence > 0.7 ? '✓ High Confidence' : transaction.confidence > 0.4 ? '⚠ Review' : '⚠ Low Confidence'}
+                  </span>
+                  <button
+                    onClick={() => removeTransaction(index)}
+                    className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 p-1"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Amount & Type */}
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Amount</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={transaction.amount}
+                      onChange={(e) => updateTransaction(index, 'amount', parseFloat(e.target.value))}
+                      className="w-full text-lg font-bold border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Type</label>
+                    <select
+                      value={transaction.transaction_type}
+                      onChange={(e) => updateTransaction(index, 'transaction_type', e.target.value)}
+                      className="w-full text-sm font-medium border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="expense">💸 Expense</option>
+                      <option value="income">💰 Income</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Date */}
+                <div className="mb-3">
+                  <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Date</label>
+                  <input
+                    type="date"
+                    value={transaction.date}
+                    onChange={(e) => updateTransaction(index, 'date', e.target.value)}
+                    className="w-full text-sm border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                {/* Description & Merchant */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Description</label>
+                    <input
+                      type="text"
+                      value={transaction.description}
+                      onChange={(e) => updateTransaction(index, 'description', e.target.value)}
+                      className="w-full text-sm border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter description"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Merchant</label>
+                    <input
+                      type="text"
+                      value={transaction.merchant}
+                      onChange={(e) => updateTransaction(index, 'merchant', e.target.value)}
+                      className="w-full text-sm border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter merchant"
+                    />
+                  </div>
+                </div>
+
+                {/* Category */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Category</label>
+                  <select
+                    value={transaction.suggested_category}
+                    onChange={(e) => updateTransaction(index, 'suggested_category', e.target.value)}
+                    className="w-full text-sm font-medium border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    {categories.map(cat => (
+                      <option key={cat.id} value={cat.name}>{cat.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

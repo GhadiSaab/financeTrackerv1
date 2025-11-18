@@ -164,11 +164,15 @@ export default function Dashboard() {
   const netSavings = totalIncome - totalExpenses;
   const savingsRate = totalIncome > 0 ? (netSavings / totalIncome * 100).toFixed(1) : 0;
 
+  // Calculate total investments value
+  const totalInvestmentsValue = investments.reduce((sum, inv) => sum + Number(inv.current_value || 0), 0);
+
   // Animated counters - HOOKS MUST BE CALLED UNCONDITIONALLY
   const animatedIncome = useAnimatedCounter(totalIncome);
   const animatedExpenses = useAnimatedCounter(totalExpenses);
   const animatedSavings = useAnimatedCounter(netSavings);
   const animatedSavingsRate = useAnimatedCounter(parseFloat(savingsRate));
+  const animatedInvestments = useAnimatedCounter(totalInvestmentsValue);
 
   // Loading state check AFTER all hooks
   if (loading) {
@@ -298,6 +302,11 @@ export default function Dashboard() {
               <p className={`text-lg md:text-2xl font-bold ${netSavings >= 0 ? 'text-blue-900 dark:text-blue-100' : 'text-red-600 dark:text-red-400'}`}>
                 ${animatedSavings.toFixed(0)}
               </p>
+              {totalInvestmentsValue > 0 && (
+                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                  Invested: ${animatedInvestments.toFixed(0)}
+                </p>
+              )}
             </div>
           </div>
         </div>

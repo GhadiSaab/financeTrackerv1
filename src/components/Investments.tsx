@@ -21,7 +21,8 @@ export default function Investments() {
     amount: '',
     purchase_date: new Date().toISOString().split('T')[0],
     current_value: '',
-    notes: ''
+    notes: '',
+    ticker_symbol: ''
   });
 
   useEffect(() => {
@@ -53,17 +54,35 @@ export default function Investments() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       if (!user) {
         toast.error('Please sign in to add or edit investments.');
         return;
       }
 
+      // Validate ticker symbol uniqueness if provided
+      if (formData.ticker_symbol && formData.ticker_symbol.trim()) {
+        const { data: existingInvestments } = await supabase
+          .from('investments')
+          .select('id, ticker_symbol')
+          .eq('user_id', user.id)
+          .eq('ticker_symbol', formData.ticker_symbol.trim().toUpperCase());
+
+        // Check if ticker exists and it's not the current investment being edited
+        if (existingInvestments && existingInvestments.length > 0) {
+          if (!editingInvestment || existingInvestments[0].id !== editingInvestment.id) {
+            toast.error(`Ticker symbol ${formData.ticker_symbol.toUpperCase()} already exists in your portfolio!`);
+            return;
+          }
+        }
+      }
+
       const investmentData = {
         ...formData,
         amount: parseFloat(formData.amount),
         current_value: parseFloat(formData.current_value || formData.amount),
+        ticker_symbol: formData.ticker_symbol ? formData.ticker_symbol.trim().toUpperCase() : null,
         user_id: user.id
       };
 
@@ -73,13 +92,13 @@ export default function Investments() {
           .update(investmentData)
           .eq('id', editingInvestment.id)
           .eq('user_id', user.id);
-        
+
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from('investments')
           .insert([investmentData]);
-        
+
         if (error) throw error;
       }
 
@@ -122,7 +141,8 @@ export default function Investments() {
       amount: '',
       purchase_date: new Date().toISOString().split('T')[0],
       current_value: '',
-      notes: ''
+      notes: '',
+      ticker_symbol: ''
     });
   };
 
@@ -134,7 +154,8 @@ export default function Investments() {
       amount: investment.amount.toString(),
       purchase_date: investment.purchase_date,
       current_value: investment.current_value.toString(),
-      notes: investment.notes || ''
+      notes: investment.notes || '',
+      ticker_symbol: investment.ticker_symbol || ''
     });
     setShowAddModal(true);
   };
@@ -292,7 +313,14 @@ export default function Investments() {
               return (
                 <tr key={investment.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                   <td className="px-6 py-4 text-sm">
-                    <div className="font-medium text-gray-900 dark:text-gray-100">{investment.name}</div>
+                    <div className="flex items-center gap-2">
+                      <div className="font-medium text-gray-900 dark:text-gray-100">{investment.name}</div>
+                      {investment.ticker_symbol && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-semibold bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600">
+                          {investment.ticker_symbol}
+                        </span>
+                      )}
+                    </div>
                     <div className="text-gray-500 dark:text-gray-400">Since {new Date(investment.purchase_date).toLocaleDateString()}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -366,12 +394,32 @@ export default function Investments() {
                   <option>Stocks</option>
                   <option>Bonds</option>
                   <option>Index Fund</option>
+                  <option>ETF</option>
                   <option>Cryptocurrency</option>
                   <option>REIT</option>
                   <option>Savings</option>
                   <option>Other</option>
                 </select>
               </div>
+
+              {/* Ticker Symbol - conditional based on asset type */}
+              {(['Stocks', 'ETF', 'Cryptocurrency'].includes(formData.asset_type)) && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Ticker Symbol {(['Stocks', 'ETF'].includes(formData.asset_type)) && <span className="text-red-500">*</span>}
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.ticker_symbol}
+                    onChange={(e) => setFormData({ ...formData, ticker_symbol: e.target.value.toUpperCase() })}
+                    placeholder="e.g., AAPL, VOO, BTC"
+                    className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 uppercase"
+                  />
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Enter the stock ticker or crypto symbol (must be unique in your portfolio)
+                  </p>
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Amount Invested</label>

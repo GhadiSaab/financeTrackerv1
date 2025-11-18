@@ -39,6 +39,7 @@ export interface Investment {
   current_value: number;
   last_updated: string;
   notes: string | null;
+  ticker_symbol: string | null;
   created_at: string;
 }
 
