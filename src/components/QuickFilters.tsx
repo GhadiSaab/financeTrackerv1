@@ -1,4 +1,4 @@
-import { Calendar, TrendingDown, TrendingUp, Sparkles } from 'lucide-react';
+import { Calendar, TrendingDown, TrendingUp, Sparkles, TrendingUpDown } from 'lucide-react';
 
 interface QuickFiltersProps {
   activeFilter: string;
@@ -10,8 +10,9 @@ export default function QuickFilters({ activeFilter, onFilterChange }: QuickFilt
     { id: 'all', label: 'All', icon: Sparkles, color: 'blue' },
     { id: 'expense', label: 'Expenses', icon: TrendingDown, color: 'red' },
     { id: 'income', label: 'Income', icon: TrendingUp, color: 'green' },
-    { id: 'today', label: 'Today', icon: Calendar, color: 'purple' },
-    { id: 'week', label: 'This Week', icon: Calendar, color: 'indigo' },
+    { id: 'investment', label: 'Investments', icon: TrendingUpDown, color: 'purple' },
+    { id: 'today', label: 'Today', icon: Calendar, color: 'indigo' },
+    { id: 'week', label: 'This Week', icon: Calendar, color: 'violet' },
     { id: 'month', label: 'This Month', icon: Calendar, color: 'cyan' },
   ];
 
@@ -35,6 +36,10 @@ export default function QuickFilters({ activeFilter, onFilterChange }: QuickFilt
     indigo: {
       active: 'bg-indigo-600 dark:bg-indigo-500 text-white border-indigo-600 dark:border-indigo-500',
       inactive: 'bg-white dark:bg-gray-800 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800/50 hover:bg-indigo-50 dark:hover:bg-indigo-900/20'
+    },
+    violet: {
+      active: 'bg-violet-600 dark:bg-violet-500 text-white border-violet-600 dark:border-violet-500',
+      inactive: 'bg-white dark:bg-gray-800 text-violet-700 dark:text-violet-400 border-violet-200 dark:border-violet-800/50 hover:bg-violet-50 dark:hover:bg-violet-900/20'
     },
     cyan: {
       active: 'bg-cyan-600 dark:bg-cyan-500 text-white border-cyan-600 dark:border-cyan-500',

@@ -155,29 +155,27 @@ export default function Dashboard() {
     .reduce((sum, t) => sum + Number(t.amount), 0);
 
   const totalExpenses = currentMonthTransactions
-    .filter(t => {
-      const category = categories.find(c => c.id === t.category_id);
-      return t.transaction_type === 'expense' && !category?.is_investment_category;
-    })
+    .filter(t => t.transaction_type === 'expense')
     .reduce((sum, t) => sum + Number(t.amount), 0);
 
-  const netSavings = totalIncome - totalExpenses;
-  const savingsRate = totalIncome > 0 ? (netSavings / totalIncome * 100).toFixed(1) : 0;
+  // Calculate investment transactions (new approach)
+  const investmentTransactions = currentMonthTransactions
+    .filter(t => t.transaction_type === 'investment')
+    .reduce((sum, t) => sum + Number(t.amount), 0);
 
   // Calculate total investments from both sources
-  // 1. Manual investments from investments table
+  // 1. Manual investments from investments table (portfolio value)
   const portfolioInvestmentsValue = investments.reduce((sum, inv) => sum + Number(inv.current_value || 0), 0);
 
-  // 2. Investment category transactions
-  const investmentTransactionsValue = currentMonthTransactions
-    .filter(t => {
-      const category = categories.find(c => c.id === t.category_id);
-      return category?.is_investment_category && t.transaction_type === 'expense';
-    })
-    .reduce((sum, t) => sum + Number(t.amount), 0);
+  // 2. Investment transactions (new transaction type)
+  const investmentTransactionsValue = investmentTransactions;
 
   // Total investments = portfolio + investment transactions
   const totalInvestmentsValue = portfolioInvestmentsValue + investmentTransactionsValue;
+
+  // Savings = Income - Expenses + Investments
+  const netSavings = totalIncome - totalExpenses + investmentTransactionsValue;
+  const savingsRate = totalIncome > 0 ? (netSavings / totalIncome * 100).toFixed(1) : 0;
 
   // Animated counters - HOOKS MUST BE CALLED UNCONDITIONALLY
   const animatedIncome = useAnimatedCounter(totalIncome);
@@ -211,22 +209,20 @@ export default function Dashboard() {
     .reduce((sum, t) => sum + Number(t.amount), 0);
 
   const prevExpenses = previousMonthTransactions
-    .filter(t => {
-      const category = categories.find(c => c.id === t.category_id);
-      return t.transaction_type === 'expense' && !category?.is_investment_category;
-    })
+    .filter(t => t.transaction_type === 'expense')
     .reduce((sum, t) => sum + Number(t.amount), 0);
 
-  const prevSavings = prevIncome - prevExpenses;
+  const prevInvestments = previousMonthTransactions
+    .filter(t => t.transaction_type === 'investment')
+    .reduce((sum, t) => sum + Number(t.amount), 0);
 
-  // Calculate category spending for budget progress (excluding investment categories)
+  const prevSavings = prevIncome - prevExpenses + prevInvestments;
+
+  // Calculate category spending for budget progress (only expenses, not investments)
   const categorySpending: { [key: string]: number } = {};
   currentMonthTransactions.forEach(t => {
     if (t.category_id && t.transaction_type === 'expense') {
-      const category = categories.find(c => c.id === t.category_id);
-      if (!category?.is_investment_category) {
-        categorySpending[t.category_id] = (categorySpending[t.category_id] || 0) + Number(t.amount);
-      }
+      categorySpending[t.category_id] = (categorySpending[t.category_id] || 0) + Number(t.amount);
     }
   });
 
@@ -237,25 +233,22 @@ export default function Dashboard() {
   months.forEach(month => {
     const monthTrans = transactions.filter(t => t.date.startsWith(month));
     const income = monthTrans.filter(t => t.transaction_type === 'income').reduce((s, t) => s + Number(t.amount), 0);
-    const expenses = monthTrans.filter(t => {
-      const category = categories.find(c => c.id === t.category_id);
-      return t.transaction_type === 'expense' && !category?.is_investment_category;
-    }).reduce((s, t) => s + Number(t.amount), 0);
+    const expenses = monthTrans.filter(t => t.transaction_type === 'expense').reduce((s, t) => s + Number(t.amount), 0);
+    const investments = monthTrans.filter(t => t.transaction_type === 'investment').reduce((s, t) => s + Number(t.amount), 0);
 
     monthlyData.push({
       month: new Date(month + '-01').toLocaleDateString('en', { month: 'short' }),
       income,
       expenses,
-      savings: income - expenses
+      savings: income - expenses + investments
     });
   });
 
-  // Category breakdown (excluding investment categories)
+  // Category breakdown (only expense transactions)
   const categoryData = categories
-    .filter(cat => !cat.is_investment_category)
     .map(cat => {
       const total = currentMonthTransactions
-        .filter(t => t.category_id === cat.id)
+        .filter(t => t.category_id === cat.id && t.transaction_type === 'expense')
         .reduce((sum, t) => sum + Number(t.amount), 0);
       return {
         name: cat.name,

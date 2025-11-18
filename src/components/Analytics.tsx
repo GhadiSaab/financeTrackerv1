@@ -125,12 +125,14 @@ export default function Analytics() {
     const monthTrans = filteredTransactions.filter(t => t.date.startsWith(month));
     const income = monthTrans.filter(t => t.transaction_type === 'income').reduce((s, t) => s + Number(t.amount), 0);
     const expenses = monthTrans.filter(t => t.transaction_type === 'expense').reduce((s, t) => s + Number(t.amount), 0);
-    
+    const investments = monthTrans.filter(t => t.transaction_type === 'investment').reduce((s, t) => s + Number(t.amount), 0);
+
     monthlyTrend.push({
       month: new Date(month + '-01').toLocaleDateString('en', { month: 'short', year: '2-digit' }),
       income,
       expenses,
-      savings: income - expenses
+      investments,
+      savings: income - expenses + investments
     });
   });
 
@@ -154,7 +156,8 @@ export default function Analytics() {
   // Income vs Expense comparison
   const totalIncome = filteredTransactions.filter(t => t.transaction_type === 'income').reduce((s, t) => s + Number(t.amount), 0);
   const totalExpenses = filteredTransactions.filter(t => t.transaction_type === 'expense').reduce((s, t) => s + Number(t.amount), 0);
-  const netSavings = totalIncome - totalExpenses;
+  const totalInvestments = filteredTransactions.filter(t => t.transaction_type === 'investment').reduce((s, t) => s + Number(t.amount), 0);
+  const netSavings = totalIncome - totalExpenses + totalInvestments;
   const savingsRate = totalIncome > 0 ? (netSavings / totalIncome * 100).toFixed(1) : 0;
 
   // Average spending by day of week

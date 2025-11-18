@@ -19,9 +19,11 @@ export default function SmartInsights({ transactions, categories }: SmartInsight
     // Calculate spending patterns
     const expenses = transactions.filter(t => t.transaction_type === 'expense');
     const income = transactions.filter(t => t.transaction_type === 'income');
+    const investments = transactions.filter(t => t.transaction_type === 'investment');
 
     const totalExpenses = expenses.reduce((sum, t) => sum + t.amount, 0);
     const totalIncome = income.reduce((sum, t) => sum + t.amount, 0);
+    const totalInvestments = investments.reduce((sum, t) => sum + t.amount, 0);
 
     // Category spending analysis
     const categorySpending: { [key: string]: number } = {};
@@ -44,14 +46,15 @@ export default function SmartInsights({ transactions, categories }: SmartInsight
       });
     }
 
-    // Savings rate insight
-    const savingsRate = totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome) * 100 : 0;
+    // Savings rate insight (including investments)
+    const netSavings = totalIncome - totalExpenses + totalInvestments;
+    const savingsRate = totalIncome > 0 ? (netSavings / totalIncome) * 100 : 0;
     if (savingsRate >= 20) {
       insights.push({
         type: 'success',
         icon: TrendingUp,
         title: 'Excellent Savings!',
-        description: `You're saving ${savingsRate.toFixed(0)}% of your income. Keep up the great work! Financial experts recommend 20% or more.`,
+        description: `You're saving ${savingsRate.toFixed(0)}% of your income (including investments). Keep up the great work! Financial experts recommend 20% or more.`,
         color: 'green'
       });
     } else if (savingsRate < 10 && savingsRate > 0) {
@@ -59,7 +62,7 @@ export default function SmartInsights({ transactions, categories }: SmartInsight
         type: 'warning',
         icon: AlertCircle,
         title: 'Low Savings Rate',
-        description: `You're only saving ${savingsRate.toFixed(0)}% of your income. Try to identify areas where you can cut back to reach the 20% goal.`,
+        description: `You're only saving ${savingsRate.toFixed(0)}% of your income (including investments). Try to identify areas where you can cut back to reach the 20% goal.`,
         color: 'yellow'
       });
     } else if (savingsRate < 0) {
@@ -67,7 +70,7 @@ export default function SmartInsights({ transactions, categories }: SmartInsight
         type: 'warning',
         icon: TrendingDown,
         title: 'Spending More Than Earning',
-        description: `Your expenses exceed your income by $${Math.abs(totalIncome - totalExpenses).toFixed(0)}. Review your budget to get back on track.`,
+        description: `Your expenses exceed your income by $${Math.abs(netSavings).toFixed(0)}. Review your budget to get back on track.`,
         color: 'red'
       });
     }

@@ -13,7 +13,7 @@ export interface Transaction {
   category_id: string;
   description: string | null;
   merchant: string | null;
-  transaction_type: 'income' | 'expense';
+  transaction_type: 'income' | 'expense' | 'investment';
   notes: string | null;
   is_recurring: boolean;
   created_at: string;

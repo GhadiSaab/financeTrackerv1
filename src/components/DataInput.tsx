@@ -354,6 +354,7 @@ export default function DataInput() {
                     >
                       <option value="expense">💸 Expense</option>
                       <option value="income">💰 Income</option>
+                      <option value="investment">📈 Investment</option>
                     </select>
                   </div>
                 </div>

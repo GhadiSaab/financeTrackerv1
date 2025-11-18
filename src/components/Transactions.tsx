@@ -14,7 +14,7 @@ export default function Transactions() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>('all');
+  const [filterType, setFilterType] = useState<'all' | 'income' | 'expense' | 'investment'>('all');
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
@@ -29,7 +29,7 @@ export default function Transactions() {
     category_id: '',
     description: '',
     merchant: '',
-    transaction_type: 'expense' as 'income' | 'expense',
+    transaction_type: 'expense' as 'income' | 'expense' | 'investment',
     notes: ''
   });
 
@@ -87,7 +87,7 @@ export default function Transactions() {
     let filtered = [...transactions];
 
     // Apply quick filters
-    if (quickFilter === 'expense' || quickFilter === 'income') {
+    if (quickFilter === 'expense' || quickFilter === 'income' || quickFilter === 'investment') {
       filtered = filtered.filter(t => t.transaction_type === quickFilter);
     } else if (quickFilter === 'today') {
       const today = new Date().toISOString().split('T')[0];
@@ -292,6 +292,7 @@ export default function Transactions() {
             <option value="all">All Types</option>
             <option value="income">Income</option>
             <option value="expense">Expense</option>
+            <option value="investment">Investment</option>
           </select>
 
           <select
@@ -353,13 +354,19 @@ export default function Transactions() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        transaction.transaction_type === 'income' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        transaction.transaction_type === 'income' ? 'bg-green-100 text-green-800' :
+                        transaction.transaction_type === 'investment' ? 'bg-purple-100 text-purple-800' :
+                        'bg-red-100 text-red-800'
                       }`}>
                         {transaction.transaction_type}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold">
-                      <span className={transaction.transaction_type === 'income' ? 'text-green-600' : 'text-gray-900 dark:text-gray-100'}>
+                      <span className={
+                        transaction.transaction_type === 'income' ? 'text-green-600' :
+                        transaction.transaction_type === 'investment' ? 'text-purple-600' :
+                        'text-gray-900 dark:text-gray-100'
+                      }>
                         {transaction.transaction_type === 'income' ? '+' : '-'}${Number(transaction.amount).toFixed(2)}
                       </span>
                     </td>
@@ -407,7 +414,9 @@ export default function Transactions() {
                     </div>
                     <div className="text-right ml-2">
                       <div className={`font-semibold text-sm ${
-                        transaction.transaction_type === 'income' ? 'text-green-600' : 'text-gray-900 dark:text-gray-100'
+                        transaction.transaction_type === 'income' ? 'text-green-600' :
+                        transaction.transaction_type === 'investment' ? 'text-purple-600' :
+                        'text-gray-900 dark:text-gray-100'
                       }`}>
                         {transaction.transaction_type === 'income' ? '+' : '-'}${Number(transaction.amount).toFixed(2)}
                       </div>
@@ -496,6 +505,7 @@ export default function Transactions() {
                   >
                     <option value="expense">💸 Expense</option>
                     <option value="income">💰 Income</option>
+                    <option value="investment">📈 Investment</option>
                   </select>
                 </div>
               </div>
