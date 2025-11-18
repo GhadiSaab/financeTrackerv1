@@ -1,4 +1,4 @@
-import { Calendar, TrendingDown, TrendingUp, Sparkles, TrendingUpDown } from 'lucide-react';
+import { Calendar, TrendingDown, TrendingUp, Sparkles, LineChart } from 'lucide-react';
 
 interface QuickFiltersProps {
   activeFilter: string;
@@ -10,7 +10,7 @@ export default function QuickFilters({ activeFilter, onFilterChange }: QuickFilt
     { id: 'all', label: 'All', icon: Sparkles, color: 'blue' },
     { id: 'expense', label: 'Expenses', icon: TrendingDown, color: 'red' },
     { id: 'income', label: 'Income', icon: TrendingUp, color: 'green' },
-    { id: 'investment', label: 'Investments', icon: TrendingUpDown, color: 'purple' },
+    { id: 'investment', label: 'Investments', icon: LineChart, color: 'purple' },
     { id: 'today', label: 'Today', icon: Calendar, color: 'indigo' },
     { id: 'week', label: 'This Week', icon: Calendar, color: 'violet' },
     { id: 'month', label: 'This Month', icon: Calendar, color: 'cyan' },
