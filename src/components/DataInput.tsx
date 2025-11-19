@@ -214,7 +214,7 @@ export default function DataInput() {
           onChange={(e) => setInputText(e.target.value)}
           placeholder="Paste your expenses here... (one per line)&#10;&#10;Examples:&#10;$45.20 at Starbucks on 11/08/2025&#10;Grocery shopping $85.50 Nov 12&#10;Paid $1200 for rent yesterday&#10;Gas $50 Shell station today"
           rows={8}
-          className="w-full rounded-xl border-2 border-gray-300 dark:border-gray-700 bg-white dark:bg-black text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-600 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 font-mono text-sm md:text-base p-3 md:p-4 transition-all"
+          className="w-full rounded-xl border-2 border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 font-mono text-sm md:text-base p-3 md:p-4 transition-all"
         />
 
         <div className="mt-4 flex justify-end space-x-3">

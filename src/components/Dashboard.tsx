@@ -173,8 +173,8 @@ export default function Dashboard() {
   // Total investments = portfolio + investment transactions
   const totalInvestmentsValue = portfolioInvestmentsValue + investmentTransactionsValue;
 
-  // Savings = Income - Expenses + Investments
-  const netSavings = totalIncome - totalExpenses + investmentTransactionsValue;
+  // Savings = Income - Expenses - Investments
+  const netSavings = totalIncome - totalExpenses - investmentTransactionsValue;
   const savingsRate = totalIncome > 0 ? (netSavings / totalIncome * 100).toFixed(1) : 0;
 
   // Animated counters - HOOKS MUST BE CALLED UNCONDITIONALLY
@@ -216,7 +216,7 @@ export default function Dashboard() {
     .filter(t => t.transaction_type === 'investment')
     .reduce((sum, t) => sum + Number(t.amount), 0);
 
-  const prevSavings = prevIncome - prevExpenses + prevInvestments;
+  const prevSavings = prevIncome - prevExpenses - prevInvestments;
 
   // Calculate category spending for budget progress (only expenses, not investments)
   const categorySpending: { [key: string]: number } = {};
@@ -240,7 +240,7 @@ export default function Dashboard() {
       month: new Date(month + '-01').toLocaleDateString('en', { month: 'short' }),
       income,
       expenses,
-      savings: income - expenses + investments
+      savings: income - expenses - investments
     });
   });
 
