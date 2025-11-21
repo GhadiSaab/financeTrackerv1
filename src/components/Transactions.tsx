@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase, Transaction, Category } from '../lib/supabase';
-import { Plus, Pencil, Trash2, Filter, Search, Download, DollarSign, TrendingUp, Calendar, Tag, FileText, Store } from 'lucide-react';
+import { Plus, Pencil, Trash2, Filter, Search, Download, DollarSign, TrendingUp, Calendar, Tag, FileText, Store, Repeat } from 'lucide-react';
 import toast from 'react-hot-toast';
 import SwipeableTransactionRow from './SwipeableTransactionRow';
 import { useIsMobile } from '../hooks/useMediaQuery';
@@ -30,7 +30,8 @@ export default function Transactions() {
     description: '',
     merchant: '',
     transaction_type: 'expense' as 'income' | 'expense' | 'investment',
-    notes: ''
+    notes: '',
+    is_recurring: false
   });
 
   useEffect(() => {
@@ -56,13 +57,13 @@ export default function Transactions() {
         .select('*')
         .eq('user_id', user.id)
         .order('date', { ascending: false });
-      
+
       const { data: catData } = await supabase
         .from('categories')
         .select('*')
         .eq('user_id', user.id)
         .order('name');
-      
+
       if (transData) setTransactions(transData);
       if (catData) setCategories(catData);
 
@@ -121,7 +122,7 @@ export default function Transactions() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       if (!user) {
         toast.error('Please sign in to add or edit transactions.');
@@ -130,7 +131,6 @@ export default function Transactions() {
       const transactionData = {
         ...formData,
         amount: parseFloat(formData.amount),
-        is_recurring: false,
         user_id: user.id
       };
 
@@ -140,13 +140,13 @@ export default function Transactions() {
           .update(transactionData)
           .eq('id', editingTransaction.id)
           .eq('user_id', user.id);
-        
+
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from('transactions')
           .insert([transactionData]);
-        
+
         if (error) throw error;
       }
 
@@ -172,7 +172,7 @@ export default function Transactions() {
         .delete()
         .eq('id', id)
         .eq('user_id', user.id);
-      
+
       if (error) throw error;
       loadData();
       toast.success('Transaction deleted successfully!');
@@ -190,7 +190,8 @@ export default function Transactions() {
       description: '',
       merchant: '',
       transaction_type: 'expense',
-      notes: ''
+      notes: '',
+      is_recurring: false
     });
   };
 
@@ -203,13 +204,14 @@ export default function Transactions() {
       description: transaction.description || '',
       merchant: transaction.merchant || '',
       transaction_type: transaction.transaction_type,
-      notes: transaction.notes || ''
+      notes: transaction.notes || '',
+      is_recurring: transaction.is_recurring || false
     });
     setShowAddModal(true);
   };
 
   const exportToCSV = () => {
-    const headers = ['Date', 'Description', 'Merchant', 'Category', 'Type', 'Amount'];
+    const headers = ['Date', 'Description', 'Merchant', 'Category', 'Type', 'Amount', 'Recurring'];
     const rows = filteredTransactions.map(t => {
       const category = categories.find(c => c.id === t.category_id);
       return [
@@ -218,7 +220,8 @@ export default function Transactions() {
         t.merchant || '',
         category?.name || 'Uncategorized',
         t.transaction_type,
-        t.amount
+        t.amount,
+        t.is_recurring ? 'Yes' : 'No'
       ];
     });
 
@@ -283,7 +286,7 @@ export default function Transactions() {
               className="pl-10 w-full rounded-xl border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-3"
             />
           </div>
-          
+
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value as any)}
@@ -321,131 +324,139 @@ export default function Transactions() {
         {/* Desktop View - Table */}
         {!isMobile && (
           <div className="hidden md:block">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Description</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Category</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Amount</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white dark:bg-gray-800 dark:bg-gray-800 divide-y divide-gray-200">
-              {filteredTransactions.map((transaction) => {
-                const category = categories.find(c => c.id === transaction.category_id);
-                return (
-                  <tr key={transaction.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                      {new Date(transaction.date).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 text-sm">
-                      <div className="font-medium text-gray-900 dark:text-gray-100">{transaction.description || 'No description'}</div>
-                      {transaction.merchant && <div className="text-gray-500 dark:text-gray-400">{transaction.merchant}</div>}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                        style={{ backgroundColor: category?.color + '20', color: category?.color }}
-                      >
-                        {category?.name || 'Uncategorized'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        transaction.transaction_type === 'income' ? 'bg-green-100 text-green-800' :
-                        transaction.transaction_type === 'investment' ? 'bg-purple-100 text-purple-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
-                        {transaction.transaction_type}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold">
-                      <span className={
-                        transaction.transaction_type === 'income' ? 'text-green-600' :
-                        transaction.transaction_type === 'investment' ? 'text-purple-600' :
-                        'text-gray-900 dark:text-gray-100'
-                      }>
-                        {transaction.transaction_type === 'income' ? '+' : '-'}${Number(transaction.amount).toFixed(2)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button
-                        onClick={() => openEditModal(transaction)}
-                        className="text-blue-600 hover:text-blue-900 mr-3"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(transaction.id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Description</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Category</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Amount</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white dark:bg-gray-800 dark:bg-gray-800 divide-y divide-gray-200">
+                {filteredTransactions.map((transaction) => {
+                  const category = categories.find(c => c.id === transaction.category_id);
+                  return (
+                    <tr key={transaction.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                        {new Date(transaction.date).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 text-sm">
+                        <div className="flex items-center gap-2">
+                          <div className="font-medium text-gray-900 dark:text-gray-100">{transaction.description || 'No description'}</div>
+                          {transaction.is_recurring && (
+                            <Repeat className="w-3 h-3 text-blue-500" />
+                          )}
+                        </div>
+                        {transaction.merchant && <div className="text-gray-500 dark:text-gray-400">{transaction.merchant}</div>}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                          style={{ backgroundColor: category?.color + '20', color: category?.color }}
+                        >
+                          {category?.name || 'Uncategorized'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${transaction.transaction_type === 'income' ? 'bg-green-100 text-green-800' :
+                            transaction.transaction_type === 'investment' ? 'bg-purple-100 text-purple-800' :
+                              'bg-red-100 text-red-800'
+                          }`}>
+                          {transaction.transaction_type}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold">
+                        <span className={
+                          transaction.transaction_type === 'income' ? 'text-green-600' :
+                            transaction.transaction_type === 'investment' ? 'text-purple-600' :
+                              'text-gray-900 dark:text-gray-100'
+                        }>
+                          {transaction.transaction_type === 'income' ? '+' : '-'}${Number(transaction.amount).toFixed(2)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button
+                          onClick={() => openEditModal(transaction)}
+                          className="text-blue-600 hover:text-blue-900 mr-3"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(transaction.id)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
 
         {/* Mobile View - Swipeable Cards */}
         {isMobile && (
           <div className="md:hidden divide-y divide-gray-200 dark:divide-gray-700">
-          {filteredTransactions.map((transaction) => {
-            const category = categories.find(c => c.id === transaction.category_id);
-            return (
-              <SwipeableTransactionRow
-                key={transaction.id}
-                onDelete={() => handleDelete(transaction.id)}
-              >
-                <div className="p-4 active:bg-gray-50 dark:active:bg-gray-700">
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-900 dark:text-gray-100 text-sm">
-                        {transaction.description || 'No description'}
+            {filteredTransactions.map((transaction) => {
+              const category = categories.find(c => c.id === transaction.category_id);
+              return (
+                <SwipeableTransactionRow
+                  key={transaction.id}
+                  onDelete={() => handleDelete(transaction.id)}
+                >
+                  <div className="p-4 active:bg-gray-50 dark:active:bg-gray-700">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <div className="font-medium text-gray-900 dark:text-gray-100 text-sm">
+                            {transaction.description || 'No description'}
+                          </div>
+                          {transaction.is_recurring && (
+                            <Repeat className="w-3 h-3 text-blue-500" />
+                          )}
+                        </div>
+                        {transaction.merchant && (
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{transaction.merchant}</div>
+                        )}
                       </div>
-                      {transaction.merchant && (
-                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{transaction.merchant}</div>
-                      )}
-                    </div>
-                    <div className="text-right ml-2">
-                      <div className={`font-semibold text-sm ${
-                        transaction.transaction_type === 'income' ? 'text-green-600' :
-                        transaction.transaction_type === 'investment' ? 'text-purple-600' :
-                        'text-gray-900 dark:text-gray-100'
-                      }`}>
-                        {transaction.transaction_type === 'income' ? '+' : '-'}${Number(transaction.amount).toFixed(2)}
+                      <div className="text-right ml-2">
+                        <div className={`font-semibold text-sm ${transaction.transaction_type === 'income' ? 'text-green-600' :
+                            transaction.transaction_type === 'investment' ? 'text-purple-600' :
+                              'text-gray-900 dark:text-gray-100'
+                          }`}>
+                          {transaction.transaction_type === 'income' ? '+' : '-'}${Number(transaction.amount).toFixed(2)}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">
-                        {new Date(transaction.date).toLocaleDateString()}
-                      </span>
-                      <span
-                        className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
-                        style={{ backgroundColor: category?.color + '20', color: category?.color }}
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-500 dark:text-gray-400">
+                          {new Date(transaction.date).toLocaleDateString()}
+                        </span>
+                        <span
+                          className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+                          style={{ backgroundColor: category?.color + '20', color: category?.color }}
+                        >
+                          {category?.name || 'Uncategorized'}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => openEditModal(transaction)}
+                        className="text-blue-600 hover:text-blue-900 p-1"
                       >
-                        {category?.name || 'Uncategorized'}
-                      </span>
+                        <Pencil className="w-4 h-4" />
+                      </button>
                     </div>
-                    <button
-                      onClick={() => openEditModal(transaction)}
-                      className="text-blue-600 hover:text-blue-900 p-1"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </button>
                   </div>
-                </div>
-              </SwipeableTransactionRow>
-            );
-          })}
-        </div>
+                </SwipeableTransactionRow>
+              );
+            })}
+          </div>
         )}
 
         {filteredTransactions.length === 0 && (
@@ -460,7 +471,7 @@ export default function Transactions() {
         <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm flex items-end md:items-center justify-center z-50 p-0 md:p-4">
           <div className="bg-white dark:bg-gray-900 rounded-t-3xl md:rounded-2xl shadow-2xl w-full md:max-w-lg max-h-[90vh] md:max-h-[85vh] overflow-y-auto">
             {/* Header */}
-            <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-500 dark:to-purple-500 p-5 md:p-6 rounded-t-3xl md:rounded-t-2xl">
+            <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-500 dark:to-purple-500 p-5 md:p-6 rounded-t-3xl md:rounded-t-2xl z-10">
               <h3 className="text-xl md:text-2xl font-bold text-white">
                 {editingTransaction ? 'Edit Transaction' : 'Add Transaction'}
               </h3>
@@ -573,6 +584,28 @@ export default function Transactions() {
                   placeholder="e.g., Starbucks, Amazon"
                   className="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 transition-all"
                 />
+              </div>
+
+              {/* Recurring Toggle */}
+              <div className="flex items-center justify-between p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                    <Repeat className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">Recurring Transaction</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Repeat this transaction monthly</p>
+                  </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={formData.is_recurring}
+                    onChange={(e) => setFormData({ ...formData, is_recurring: e.target.checked })}
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                </label>
               </div>
 
               {/* Action Buttons */}

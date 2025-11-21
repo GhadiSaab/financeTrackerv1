@@ -1,10 +1,11 @@
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Receipt, 
-  Sparkles, 
-  FileText,
-  PieChart
+import {
+  LayoutDashboard,
+  Receipt,
+  Sparkles,
+  PieChart,
+  Repeat,
+  Plus
 } from 'lucide-react';
 
 export default function MobileNav() {
@@ -12,10 +13,10 @@ export default function MobileNav() {
 
   const navItems = [
     { path: '/', icon: LayoutDashboard, label: 'Home' },
-    { path: '/transactions', icon: Receipt, label: 'Transactions' },
-    { path: '/input', icon: Sparkles, label: 'Add' },
-    { path: '/analytics', icon: PieChart, label: 'Analytics' },
-    { path: '/reports', icon: FileText, label: 'Reports' },
+    { path: '/transactions', icon: Receipt, label: 'Trans' },
+    { path: '/input', icon: Plus, label: 'Add', isSpecial: true },
+    { path: '/subscriptions', icon: Repeat, label: 'Subs' },
+    { path: '/analytics', icon: PieChart, label: 'Stats' },
   ];
 
   return (
@@ -24,23 +25,36 @@ export default function MobileNav() {
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path;
+          const isSpecial = item.isSpecial;
+
+          if (isSpecial) {
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className="relative -top-5"
+              >
+                <div className="w-14 h-14 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/30 active:scale-95 transition-transform">
+                  <Icon className="w-7 h-7 text-white" />
+                </div>
+              </Link>
+            );
+          }
 
           return (
             <Link
               key={item.path}
               to={item.path}
-              className={`flex flex-col items-center justify-center flex-1 h-full transition-all relative ${
-                isActive
+              className={`flex flex-col items-center justify-center flex-1 h-full transition-all relative ${isActive
                   ? 'text-blue-600 dark:text-blue-400'
                   : 'text-gray-600 dark:text-gray-500 active:scale-95'
-              }`}
+                }`}
             >
               {isActive && (
-                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-12 h-1 bg-blue-600 dark:bg-blue-400 rounded-b-full" />
+                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-blue-600 dark:bg-blue-400 rounded-b-full" />
               )}
-              <div className={`p-2 rounded-xl transition-all ${
-                isActive ? 'bg-blue-50 dark:bg-blue-950/50' : ''
-              }`}>
+              <div className={`p-1.5 rounded-xl transition-all ${isActive ? 'bg-blue-50 dark:bg-blue-950/50' : ''
+                }`}>
                 <Icon className={`w-5 h-5 ${isActive ? 'scale-110' : ''} transition-transform`} />
               </div>
               <span className={`text-[10px] mt-0.5 font-medium ${isActive ? 'font-bold' : ''}`}>
