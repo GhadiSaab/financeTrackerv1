@@ -401,7 +401,7 @@ export default function Transactions() {
 
         {/* Mobile View - Swipeable Cards */}
         {isMobile && (
-          <div className="md:hidden divide-y divide-gray-200 dark:divide-gray-700 dark:divide-gray-700">
+          <div className="md:hidden divide-y divide-gray-200 dark:divide-gray-700">
             {filteredTransactions.map((transaction) => {
               const category = categories.find(c => c.id === transaction.category_id);
               return (

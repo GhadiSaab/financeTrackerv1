@@ -1,4 +1,4 @@
-import { Sparkles, TrendingUp, TrendingDown, AlertCircle, Lightbulb, Target } from 'lucide-react';
+import { Sparkles, TrendingUp, TrendingDown, AlertCircle, Lightbulb, Target, Calendar, Repeat, ArrowUpRight, ShieldCheck } from 'lucide-react';
 import { Transaction, Category } from '../lib/supabase';
 
 interface SmartInsightsProps {
@@ -13,8 +13,11 @@ export default function SmartInsights({ transactions, categories }: SmartInsight
       icon: any;
       title: string;
       description: string;
+      action?: string;
       color: string;
     }> = [];
+
+    if (transactions.length === 0) return insights;
 
     // Calculate spending patterns
     const expenses = transactions.filter(t => t.transaction_type === 'expense');
@@ -25,151 +28,304 @@ export default function SmartInsights({ transactions, categories }: SmartInsight
     const totalIncome = income.reduce((sum, t) => sum + t.amount, 0);
     const totalInvestments = investments.reduce((sum, t) => sum + t.amount, 0);
 
+    // Get current month data
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    const thisMonthExpenses = expenses.filter(t => {
+      const d = new Date(t.date);
+      return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+    });
+
+    const lastMonthExpenses = expenses.filter(t => {
+      const d = new Date(t.date);
+      const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+      const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+      return d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
+    });
+
+    const thisMonthTotal = thisMonthExpenses.reduce((sum, t) => sum + t.amount, 0);
+    const lastMonthTotal = lastMonthExpenses.reduce((sum, t) => sum + t.amount, 0);
+
     // Category spending analysis
-    const categorySpending: { [key: string]: number } = {};
+    const categorySpending: { [key: string]: { total: number; count: number; transactions: Transaction[] } } = {};
     expenses.forEach(t => {
       if (t.category_id) {
-        categorySpending[t.category_id] = (categorySpending[t.category_id] || 0) + t.amount;
+        if (!categorySpending[t.category_id]) {
+          categorySpending[t.category_id] = { total: 0, count: 0, transactions: [] };
+        }
+        categorySpending[t.category_id].total += t.amount;
+        categorySpending[t.category_id].count += 1;
+        categorySpending[t.category_id].transactions.push(t);
       }
     });
 
-    const topCategory = Object.entries(categorySpending).sort((a, b) => b[1] - a[1])[0];
-    if (topCategory) {
-      const category = categories.find(c => c.id === topCategory[0]);
-      const percentage = ((topCategory[1] / totalExpenses) * 100).toFixed(0);
-      insights.push({
-        type: 'info',
-        icon: Target,
-        title: 'Top Spending Category',
-        description: `${percentage}% of your expenses went to ${category?.name || 'Unknown'}. Consider reviewing if this aligns with your priorities.`,
-        color: 'blue'
-      });
+    // Day of week analysis
+    const daySpending: { [key: number]: number } = {};
+    thisMonthExpenses.forEach(t => {
+      const day = new Date(t.date).getDay();
+      daySpending[day] = (daySpending[day] || 0) + t.amount;
+    });
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const highestSpendingDay = Object.entries(daySpending).sort((a, b) => b[1] - a[1])[0];
+
+    // 1. Month-over-month comparison
+    if (lastMonthTotal > 0 && thisMonthTotal > 0) {
+      const percentChange = ((thisMonthTotal - lastMonthTotal) / lastMonthTotal) * 100;
+
+      if (percentChange > 15) {
+        insights.push({
+          type: 'warning',
+          icon: TrendingUp,
+          title: 'Spending Up This Month',
+          description: `You've spent ${percentChange.toFixed(0)}% more than last month ($${thisMonthTotal.toFixed(0)} vs $${lastMonthTotal.toFixed(0)}). Review your recent purchases to stay on track.`,
+          action: 'Review expenses',
+          color: 'orange'
+        });
+      } else if (percentChange < -10) {
+        insights.push({
+          type: 'success',
+          icon: TrendingDown,
+          title: 'Great Job Cutting Costs!',
+          description: `You've reduced spending by ${Math.abs(percentChange).toFixed(0)}% compared to last month. You're saving $${Math.abs(thisMonthTotal - lastMonthTotal).toFixed(0)} extra!`,
+          color: 'green'
+        });
+      }
     }
 
-    // Savings rate insight (including investments)
-    const netSavings = totalIncome - totalExpenses + totalInvestments;
+    // 2. Top spending category with actionable advice
+    const sortedCategories = Object.entries(categorySpending).sort((a, b) => b[1].total - a[1].total);
+    if (sortedCategories.length > 0) {
+      const [topCatId, topCatData] = sortedCategories[0];
+      const category = categories.find(c => c.id === topCatId);
+      const percentage = ((topCatData.total / totalExpenses) * 100).toFixed(0);
+
+      if (category) {
+        const avgTransaction = topCatData.total / topCatData.count;
+        insights.push({
+          type: 'info',
+          icon: Target,
+          title: `${category.name}: $${topCatData.total.toFixed(0)} (${percentage}%)`,
+          description: `Your biggest expense category with ${topCatData.count} transactions averaging $${avgTransaction.toFixed(0)} each.${Number(percentage) > 30 ? ' Consider setting a budget limit to control this spending.' : ''}`,
+          color: 'blue'
+        });
+      }
+    }
+
+    // 3. Savings rate with specific guidance
+    const netSavings = totalIncome - totalExpenses;
     const savingsRate = totalIncome > 0 ? (netSavings / totalIncome) * 100 : 0;
+    const investmentRate = totalIncome > 0 ? (totalInvestments / totalIncome) * 100 : 0;
+
     if (savingsRate >= 20) {
       insights.push({
         type: 'success',
-        icon: TrendingUp,
-        title: 'Excellent Savings!',
-        description: `You're saving ${savingsRate.toFixed(0)}% of your income (including investments). Keep up the great work! Financial experts recommend 20% or more.`,
+        icon: ShieldCheck,
+        title: `Saving ${savingsRate.toFixed(0)}% of Income`,
+        description: `Excellent! You're beating the recommended 20% savings rate. ${investmentRate > 0 ? `Plus ${investmentRate.toFixed(0)}% going to investments.` : 'Consider investing some savings for long-term growth.'}`,
         color: 'green'
       });
-    } else if (savingsRate < 10 && savingsRate > 0) {
+    } else if (savingsRate >= 10 && savingsRate < 20) {
+      const needed = (0.2 * totalIncome) - netSavings;
+      insights.push({
+        type: 'info',
+        icon: ArrowUpRight,
+        title: `Savings Rate: ${savingsRate.toFixed(0)}%`,
+        description: `You're saving, but aim for 20%. Cutting $${needed.toFixed(0)}/month would hit the target. Look at your top 2 expense categories for opportunities.`,
+        action: 'Find $' + needed.toFixed(0) + ' to save',
+        color: 'blue'
+      });
+    } else if (savingsRate < 10 && savingsRate >= 0) {
       insights.push({
         type: 'warning',
         icon: AlertCircle,
         title: 'Low Savings Rate',
-        description: `You're only saving ${savingsRate.toFixed(0)}% of your income (including investments). Try to identify areas where you can cut back to reach the 20% goal.`,
+        description: `Only ${savingsRate.toFixed(0)}% of income saved. Review subscriptions and dining expenses first - these are often the easiest to reduce.`,
+        action: 'Audit subscriptions',
         color: 'yellow'
       });
     } else if (savingsRate < 0) {
       insights.push({
         type: 'warning',
         icon: TrendingDown,
-        title: 'Spending More Than Earning',
-        description: `Your expenses exceed your income by $${Math.abs(netSavings).toFixed(0)}. Review your budget to get back on track.`,
+        title: 'Spending Exceeds Income',
+        description: `You're spending $${Math.abs(netSavings).toFixed(0)} more than you earn. Create a strict budget immediately and cut non-essential expenses.`,
+        action: 'Create budget',
         color: 'red'
       });
     }
 
-    // Transaction frequency insight
-    const avgDailyTransactions = transactions.length / 30;
-    if (avgDailyTransactions < 1) {
+    // 4. Recurring expenses detection
+    const recurringTransactions = transactions.filter(t => t.is_recurring);
+    const recurringTotal = recurringTransactions.reduce((sum, t) => sum + t.amount, 0);
+    if (recurringTotal > 0 && totalIncome > 0) {
+      const recurringPercent = (recurringTotal / totalIncome) * 100;
+      if (recurringPercent > 30) {
+        insights.push({
+          type: 'warning',
+          icon: Repeat,
+          title: 'High Recurring Costs',
+          description: `${recurringPercent.toFixed(0)}% of your income ($${recurringTotal.toFixed(0)}) goes to recurring bills. Audit subscriptions and negotiate lower rates on utilities.`,
+          action: 'Review subscriptions',
+          color: 'orange'
+        });
+      }
+    }
+
+    // 5. Weekend spending insight
+    if (highestSpendingDay) {
+      const dayNum = parseInt(highestSpendingDay[0]);
+      const dayAmount = highestSpendingDay[1];
+      const dailyAvg = thisMonthTotal / (now.getDate());
+
+      if (dayAmount > dailyAvg * 2 && (dayNum === 0 || dayNum === 6 || dayNum === 5)) {
+        insights.push({
+          type: 'tip',
+          icon: Calendar,
+          title: `${dayNames[dayNum]} Spending Spike`,
+          description: `You spend the most on ${dayNames[dayNum]}s ($${dayAmount.toFixed(0)} this month). Plan activities with a budget or try free alternatives.`,
+          color: 'purple'
+        });
+      }
+    }
+
+    // 6. Budget compliance
+    const budgetCategories = categories.filter(c => c.budget_limit && c.budget_limit > 0);
+    const overBudgetCategories = budgetCategories.filter(cat => {
+      const spent = categorySpending[cat.id]?.total || 0;
+      return spent > (cat.budget_limit || 0);
+    });
+
+    if (overBudgetCategories.length > 0) {
+      const overBudgetNames = overBudgetCategories.map(c => c.name).join(', ');
+      const totalOver = overBudgetCategories.reduce((sum, cat) => {
+        const spent = categorySpending[cat.id]?.total || 0;
+        return sum + (spent - (cat.budget_limit || 0));
+      }, 0);
+
+      insights.push({
+        type: 'warning',
+        icon: AlertCircle,
+        title: 'Over Budget',
+        description: `You've exceeded your budget in ${overBudgetNames} by $${totalOver.toFixed(0)} total. Pause non-essential purchases in these categories.`,
+        action: 'Freeze spending',
+        color: 'red'
+      });
+    } else if (budgetCategories.length > 0) {
+      const totalBudget = budgetCategories.reduce((sum, c) => sum + (c.budget_limit || 0), 0);
+      const totalSpentInBudgeted = budgetCategories.reduce((sum, c) => sum + (categorySpending[c.id]?.total || 0), 0);
+      const remaining = totalBudget - totalSpentInBudgeted;
+
+      if (remaining > 0) {
+        insights.push({
+          type: 'success',
+          icon: Target,
+          title: 'Within All Budgets',
+          description: `Great discipline! You have $${remaining.toFixed(0)} remaining across your budgeted categories. Keep it up!`,
+          color: 'green'
+        });
+      }
+    }
+
+    // 7. Investment encouragement (if not investing)
+    if (totalInvestments === 0 && savingsRate > 10) {
       insights.push({
         type: 'tip',
         icon: Lightbulb,
-        title: 'Track More Frequently',
-        description: `You're averaging ${avgDailyTransactions.toFixed(1)} transactions per day. Regular tracking helps you stay on top of your finances!`,
+        title: 'Start Investing',
+        description: `You're saving ${savingsRate.toFixed(0)}% of income. Consider investing a portion for compound growth - even $50/month can grow significantly over time.`,
+        action: 'Learn about investing',
         color: 'purple'
       });
     }
 
-    // Budget compliance
-    const budgetCategories = categories.filter(c => c.budget_limit && c.budget_limit > 0);
-    const overBudgetCount = budgetCategories.filter(cat => {
-      const spent = categorySpending[cat.id] || 0;
-      return spent > (cat.budget_limit || 0);
-    }).length;
-
-    if (overBudgetCount > 0) {
-      insights.push({
-        type: 'warning',
-        icon: AlertCircle,
-        title: 'Budget Alert',
-        description: `You're over budget in ${overBudgetCount} ${overBudgetCount === 1 ? 'category' : 'categories'}. Review your spending to stay on track.`,
-        color: 'orange'
-      });
-    } else if (budgetCategories.length > 0) {
-      insights.push({
-        type: 'success',
-        icon: Target,
-        title: 'On Track!',
-        description: `Great job! You're staying within budget across all categories. Keep it up!`,
-        color: 'green'
-      });
-    }
-
-    return insights;
+    return insights.slice(0, 4); // Return top 4 most relevant insights
   };
 
   const insights = generateInsights();
 
   if (insights.length === 0) {
-    return null;
+    return (
+      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-4 md:p-6 rounded-xl md:rounded-2xl shadow-sm">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="p-1.5 bg-gradient-to-br from-teal-500 to-emerald-500 rounded-lg">
+            <Sparkles className="w-4 h-4 text-white" />
+          </div>
+          <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white">
+            Smart Insights
+          </h3>
+        </div>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Add some transactions to get personalized financial insights and recommendations.
+        </p>
+      </div>
+    );
   }
 
   const colorMap = {
     blue: {
-      bg: 'from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30',
-      border: 'border-blue-200 dark:border-blue-800/50',
+      bg: 'from-blue-50 to-cyan-50 dark:from-blue-950/40 dark:to-cyan-950/40',
+      border: 'border-blue-200/50 dark:border-blue-700/30',
       text: 'text-blue-900 dark:text-blue-100',
+      subtext: 'text-blue-700 dark:text-blue-300',
       icon: 'text-blue-600 dark:text-blue-400',
-      iconBg: 'bg-blue-100 dark:bg-blue-900/40'
+      iconBg: 'bg-blue-100 dark:bg-blue-900/50',
+      action: 'bg-blue-600 hover:bg-blue-700 text-white'
     },
     green: {
-      bg: 'from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30',
-      border: 'border-green-200 dark:border-green-800/50',
-      text: 'text-green-900 dark:text-green-100',
-      icon: 'text-green-600 dark:text-green-400',
-      iconBg: 'bg-green-100 dark:bg-green-900/40'
+      bg: 'from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/40',
+      border: 'border-emerald-200/50 dark:border-emerald-700/30',
+      text: 'text-emerald-900 dark:text-emerald-100',
+      subtext: 'text-emerald-700 dark:text-emerald-300',
+      icon: 'text-emerald-600 dark:text-emerald-400',
+      iconBg: 'bg-emerald-100 dark:bg-emerald-900/50',
+      action: 'bg-emerald-600 hover:bg-emerald-700 text-white'
     },
     yellow: {
-      bg: 'from-yellow-50 to-orange-50 dark:from-yellow-950/30 dark:to-orange-950/30',
-      border: 'border-yellow-200 dark:border-yellow-800/50',
-      text: 'text-yellow-900 dark:text-yellow-100',
-      icon: 'text-yellow-600 dark:text-yellow-400',
-      iconBg: 'bg-yellow-100 dark:bg-yellow-900/40'
+      bg: 'from-amber-50 to-yellow-50 dark:from-amber-950/40 dark:to-yellow-950/40',
+      border: 'border-amber-200/50 dark:border-amber-700/30',
+      text: 'text-amber-900 dark:text-amber-100',
+      subtext: 'text-amber-700 dark:text-amber-300',
+      icon: 'text-amber-600 dark:text-amber-400',
+      iconBg: 'bg-amber-100 dark:bg-amber-900/50',
+      action: 'bg-amber-600 hover:bg-amber-700 text-white'
     },
     red: {
-      bg: 'from-red-50 to-rose-50 dark:from-red-950/30 dark:to-rose-950/30',
-      border: 'border-red-200 dark:border-red-800/50',
-      text: 'text-red-900 dark:text-red-100',
-      icon: 'text-red-600 dark:text-red-400',
-      iconBg: 'bg-red-100 dark:bg-red-900/40'
+      bg: 'from-rose-50 to-red-50 dark:from-rose-950/40 dark:to-red-950/40',
+      border: 'border-rose-200/50 dark:border-rose-700/30',
+      text: 'text-rose-900 dark:text-rose-100',
+      subtext: 'text-rose-700 dark:text-rose-300',
+      icon: 'text-rose-600 dark:text-rose-400',
+      iconBg: 'bg-rose-100 dark:bg-rose-900/50',
+      action: 'bg-rose-600 hover:bg-rose-700 text-white'
     },
     purple: {
-      bg: 'from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30',
-      border: 'border-purple-200 dark:border-purple-800/50',
-      text: 'text-purple-900 dark:text-purple-100',
-      icon: 'text-purple-600 dark:text-purple-400',
-      iconBg: 'bg-purple-100 dark:bg-purple-900/40'
+      bg: 'from-violet-50 to-purple-50 dark:from-violet-950/40 dark:to-purple-950/40',
+      border: 'border-violet-200/50 dark:border-violet-700/30',
+      text: 'text-violet-900 dark:text-violet-100',
+      subtext: 'text-violet-700 dark:text-violet-300',
+      icon: 'text-violet-600 dark:text-violet-400',
+      iconBg: 'bg-violet-100 dark:bg-violet-900/50',
+      action: 'bg-violet-600 hover:bg-violet-700 text-white'
     },
     orange: {
-      bg: 'from-orange-50 to-red-50 dark:from-orange-950/30 dark:to-red-950/30',
-      border: 'border-orange-200 dark:border-orange-800/50',
+      bg: 'from-orange-50 to-amber-50 dark:from-orange-950/40 dark:to-amber-950/40',
+      border: 'border-orange-200/50 dark:border-orange-700/30',
       text: 'text-orange-900 dark:text-orange-100',
+      subtext: 'text-orange-700 dark:text-orange-300',
       icon: 'text-orange-600 dark:text-orange-400',
-      iconBg: 'bg-orange-100 dark:bg-orange-900/40'
+      iconBg: 'bg-orange-100 dark:bg-orange-900/50',
+      action: 'bg-orange-600 hover:bg-orange-700 text-white'
     }
   };
 
   return (
     <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-4 md:p-6 rounded-xl md:rounded-2xl shadow-sm">
       <div className="flex items-center gap-2 mb-4">
-        <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+        <div className="p-1.5 bg-gradient-to-br from-teal-500 to-emerald-500 rounded-lg">
+          <Sparkles className="w-4 h-4 text-white" />
+        </div>
         <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white">
           Smart Insights
         </h3>
@@ -193,9 +349,14 @@ export default function SmartInsights({ transactions, categories }: SmartInsight
                   <h4 className={`text-sm font-semibold ${colors.text} mb-1`}>
                     {insight.title}
                   </h4>
-                  <p className={`text-xs ${colors.text} opacity-80`}>
+                  <p className={`text-xs ${colors.subtext} leading-relaxed`}>
                     {insight.description}
                   </p>
+                  {insight.action && (
+                    <button className={`mt-2 text-xs font-medium px-3 py-1.5 rounded-lg ${colors.action} transition-colors`}>
+                      {insight.action}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

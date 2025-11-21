@@ -138,14 +138,22 @@ export default function Dashboard() {
       if (invData) setInvestments(invData);
       if (accData) setAccounts(accData);
 
-      // Get AI insights
+      // Get AI insights (with fallback)
       if (transData && catData) {
-        const { data: insightsData } = await supabase.functions.invoke('ai-insights', {
-          body: { transactions: transData, categories: catData, investments: invData }
-        });
+        try {
+          const { data: insightsData } = await supabase.functions.invoke('ai-insights', {
+            body: { transactions: transData, categories: catData, investments: invData }
+          });
 
-        if (insightsData?.data) {
-          setInsights(insightsData.data);
+          if (insightsData?.data) {
+            setInsights(insightsData.data);
+          } else {
+            // Generate local fallback insights
+            setInsights(generateLocalInsights(transData, catData, invData || []));
+          }
+        } catch {
+          // Generate local fallback insights on error
+          setInsights(generateLocalInsights(transData, catData, invData || []));
         }
       }
     } catch (error) {
@@ -153,6 +161,108 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Generate local insights when AI edge function is unavailable
+  const generateLocalInsights = (trans: Transaction[], cats: Category[], invs: Investment[]) => {
+    const currentMonth = new Date().toISOString().substring(0, 7);
+    const thisMonthTrans = trans.filter(t => t.date.startsWith(currentMonth));
+
+    const income = thisMonthTrans.filter(t => t.transaction_type === 'income').reduce((s, t) => s + t.amount, 0);
+    const expenses = thisMonthTrans.filter(t => t.transaction_type === 'expense').reduce((s, t) => s + t.amount, 0);
+    const savings = income - expenses;
+    const savingsRate = income > 0 ? (savings / income) * 100 : 0;
+
+    // Category analysis
+    const catSpending: { [key: string]: number } = {};
+    thisMonthTrans.filter(t => t.transaction_type === 'expense').forEach(t => {
+      if (t.category_id) catSpending[t.category_id] = (catSpending[t.category_id] || 0) + t.amount;
+    });
+    const topCatId = Object.entries(catSpending).sort((a, b) => b[1] - a[1])[0];
+    const topCategory = topCatId ? cats.find(c => c.id === topCatId[0]) : null;
+
+    const insights = [];
+    const recommendations = [];
+
+    // Generate insights based on data
+    if (savingsRate >= 20) {
+      insights.push({
+        type: 'success',
+        title: 'Strong Savings Rate',
+        message: `You're saving ${savingsRate.toFixed(0)}% of your income this month. This exceeds the recommended 20% target.`
+      });
+    } else if (savingsRate >= 0 && savingsRate < 20) {
+      insights.push({
+        type: 'info',
+        title: 'Room for Improvement',
+        message: `Your savings rate is ${savingsRate.toFixed(0)}%. Aim for 20% by reducing discretionary spending.`
+      });
+    } else {
+      insights.push({
+        type: 'warning',
+        title: 'Spending Alert',
+        message: `You're spending more than you earn this month. Review your expenses to get back on track.`
+      });
+    }
+
+    if (topCategory && topCatId) {
+      const percentage = ((topCatId[1] / expenses) * 100).toFixed(0);
+      insights.push({
+        type: 'info',
+        title: `Top Category: ${topCategory.name}`,
+        message: `${percentage}% of your spending ($${topCatId[1].toFixed(0)}) went to ${topCategory.name}. Is this aligned with your priorities?`
+      });
+    }
+
+    if (invs.length === 0 && savingsRate > 10) {
+      insights.push({
+        type: 'info',
+        title: 'Consider Investing',
+        message: `You have positive savings but no investments. Starting small can lead to significant long-term growth.`
+      });
+    }
+
+    // Generate recommendations
+    if (savingsRate < 20 && income > 0) {
+      const needed = (0.2 * income) - savings;
+      recommendations.push({
+        title: 'Increase Savings',
+        description: `Find $${needed.toFixed(0)} to cut from your expenses to reach a 20% savings rate.`,
+        potential_savings: needed.toFixed(0),
+        difficulty: needed < 100 ? 'easy' : needed < 300 ? 'medium' : 'hard'
+      });
+    }
+
+    if (topCategory && topCatId && topCatId[1] > expenses * 0.3) {
+      recommendations.push({
+        title: `Reduce ${topCategory.name} Spending`,
+        description: `This category takes up ${((topCatId[1] / expenses) * 100).toFixed(0)}% of your budget. Try cutting it by 20%.`,
+        potential_savings: (topCatId[1] * 0.2).toFixed(0),
+        difficulty: 'medium'
+      });
+    }
+
+    const recurringExpenses = thisMonthTrans.filter(t => t.is_recurring && t.transaction_type === 'expense');
+    if (recurringExpenses.length > 0) {
+      const recurringTotal = recurringExpenses.reduce((s, t) => s + t.amount, 0);
+      recommendations.push({
+        title: 'Audit Subscriptions',
+        description: `You have $${recurringTotal.toFixed(0)} in recurring expenses. Review and cancel unused subscriptions.`,
+        potential_savings: (recurringTotal * 0.15).toFixed(0),
+        difficulty: 'easy'
+      });
+    }
+
+    if (recommendations.length === 0) {
+      recommendations.push({
+        title: 'Build Emergency Fund',
+        description: 'Aim for 3-6 months of expenses saved. Automate transfers to a high-yield savings account.',
+        potential_savings: '50',
+        difficulty: 'easy'
+      });
+    }
+
+    return { insights: insights.slice(0, 3), recommendations: recommendations.slice(0, 3) };
   };
 
   // Calculate summary statistics - MUST BE BEFORE HOOKS

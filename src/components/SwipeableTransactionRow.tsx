@@ -90,7 +90,7 @@ export default function SwipeableTransactionRow({
             : 'none',
           opacity: isDeleting ? 0 : 1,
         }}
-        className="bg-white"
+        className="bg-white dark:bg-gray-900"
       >
         {children}
       </div>
