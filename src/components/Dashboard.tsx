@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { CustomTooltip, getChartColors } from './ChartComponents';
-import { supabase, Transaction, Category, Investment } from '../lib/supabase';
+import { supabase, Transaction, Category, Investment, Account } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import {
   DollarSign,
@@ -47,6 +47,7 @@ export default function Dashboard() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [investments, setInvestments] = useState<Investment[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
   const [insights, setInsights] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -126,9 +127,16 @@ export default function Dashboard() {
         .select('*')
         .eq('user_id', user.id);
 
+      // Load accounts
+      const { data: accData } = await supabase
+        .from('accounts')
+        .select('*')
+        .eq('user_id', user.id);
+
       if (transData) setTransactions(transData);
       if (catData) setCategories(catData);
       if (invData) setInvestments(invData);
+      if (accData) setAccounts(accData);
 
       // Get AI insights
       if (transData && catData) {
@@ -186,6 +194,14 @@ export default function Dashboard() {
   const animatedInvestments = useAnimatedCounter(totalInvestmentsValue);
   const animatedPortfolioInvestments = useAnimatedCounter(portfolioInvestmentsValue);
   const animatedInvestmentTransactions = useAnimatedCounter(investmentTransactionsValue);
+
+  // Calculate Net Worth
+  const totalAssets = accounts.reduce((sum, acc) => ['checking', 'savings', 'other'].includes(acc.type) ? sum + Number(acc.balance) : sum, 0) +
+    investments.reduce((sum, inv) => sum + Number(inv.current_value), 0);
+  const totalLiabilities = accounts.reduce((sum, acc) => ['credit_card', 'loan'].includes(acc.type) ? sum + Number(acc.balance) : sum, 0);
+  const netWorth = totalAssets - totalLiabilities;
+
+  const animatedNetWorth = useAnimatedCounter(netWorth);
 
   // Loading state check AFTER all hooks
   if (loading) {
@@ -245,6 +261,40 @@ export default function Dashboard() {
     });
   });
 
+  // Calculate Average Spending by Day of Week
+  const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const spendingByDay = new Array(7).fill(0);
+  const countsByDay = new Array(7).fill(0);
+
+  transactions.forEach(t => {
+    if (t.transaction_type === 'expense') {
+      const date = new Date(t.date);
+      const day = date.getDay(); // 0 = Sunday, 6 = Saturday
+      spendingByDay[day] += Number(t.amount);
+      countsByDay[day]++;
+    }
+  });
+
+  // To get a true "average per day", we need to know how many of each weekday passed in the date range.
+  // For simplicity and robustness with sparse data, we'll average over the unique dates present in the transactions for that weekday.
+  // Or better: Total Spending / Count of transactions? No, that's average transaction size.
+  // We want Average Daily Spending.
+  // Let's calculate: Total Spending on Day X / Number of unique dates that were Day X in the dataset.
+
+  const uniqueDatesByDay = new Array(7).fill(0).map(() => new Set<string>());
+  transactions.forEach(t => {
+    if (t.transaction_type === 'expense') {
+      const date = new Date(t.date);
+      const day = date.getDay();
+      uniqueDatesByDay[day].add(t.date);
+    }
+  });
+
+  const dailyAverageData = daysOfWeek.map((day, index) => ({
+    day,
+    amount: uniqueDatesByDay[index].size > 0 ? spendingByDay[index] / uniqueDatesByDay[index].size : 0
+  }));
+
   // Category breakdown (only expense transactions)
   const categoryData = categories
     .map(cat => {
@@ -278,6 +328,7 @@ export default function Dashboard() {
         portfolioValue={animatedPortfolioInvestments}
         investmentTransactionsValue={animatedInvestmentTransactions}
         investmentCount={investments.length}
+        netWorth={animatedNetWorth}
       />
 
       {/* Charts Row - Mobile Optimized */}
@@ -318,6 +369,43 @@ export default function Dashboard() {
                   <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
                   <Bar dataKey="income" fill="#10b981" fillOpacity={0.9} name="Income" radius={[4, 4, 0, 0]} maxBarSize={50} />
                   <Bar dataKey="expenses" fill="#ef4444" fillOpacity={0.9} name="Expenses" radius={[4, 4, 0, 0]} maxBarSize={50} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Average Spending by Day of Week */}
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-4 md:p-6 rounded-xl md:rounded-2xl shadow-sm">
+            <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-3 md:mb-4">Avg. Spending by Day</h3>
+            <div className="h-[250px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={dailyAverageData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} vertical={false} />
+                  <XAxis
+                    dataKey="day"
+                    stroke={chartColors.text}
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis
+                    stroke={chartColors.text}
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(value) => `$${value}`}
+                  />
+                  <Tooltip
+                    formatter={(value) => `$${Number(value).toFixed(2)}`}
+                    contentStyle={{
+                      backgroundColor: resolvedTheme === 'dark' ? '#1f2937' : '#ffffff',
+                      border: `1px solid ${resolvedTheme === 'dark' ? '#374151' : '#e5e7eb'}`,
+                      borderRadius: '0.5rem',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    }}
+                    itemStyle={{ color: resolvedTheme === 'dark' ? '#f3f4f6' : '#111827' }}
+                  />
+                  <Bar dataKey="amount" fill="#8b5cf6" fillOpacity={0.9} name="Avg Spending" radius={[4, 4, 0, 0]} maxBarSize={50} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

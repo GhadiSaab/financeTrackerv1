@@ -5,7 +5,9 @@ import {
   Sparkles,
   PieChart,
   Repeat,
-  Plus
+  Plus,
+  Wallet,
+  Target
 } from 'lucide-react';
 
 export default function MobileNav() {
@@ -13,10 +15,10 @@ export default function MobileNav() {
 
   const navItems = [
     { path: '/', icon: LayoutDashboard, label: 'Home' },
-    { path: '/transactions', icon: Receipt, label: 'Trans' },
-    { path: '/input', icon: Plus, label: 'Add', isSpecial: true },
     { path: '/subscriptions', icon: Repeat, label: 'Subs' },
-    { path: '/analytics', icon: PieChart, label: 'Stats' },
+    { path: '/input', icon: Plus, label: 'Add', isSpecial: true },
+    { path: '/goals', icon: Target, label: 'Goals' },
+    { path: '/accounts', icon: Wallet, label: 'Accts' },
   ];
 
   return (
@@ -46,8 +48,8 @@ export default function MobileNav() {
               key={item.path}
               to={item.path}
               className={`flex flex-col items-center justify-center flex-1 h-full transition-all relative ${isActive
-                  ? 'text-blue-600 dark:text-blue-400'
-                  : 'text-gray-600 dark:text-gray-500 active:scale-95'
+                ? 'text-blue-600 dark:text-blue-400'
+                : 'text-gray-600 dark:text-gray-500 active:scale-95'
                 }`}
             >
               {isActive && (

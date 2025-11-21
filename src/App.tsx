@@ -1,11 +1,14 @@
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  PieChart, 
-  Receipt, 
-  TrendingUp, 
-  FileText, 
-  Sparkles
+import {
+  LayoutDashboard,
+  PieChart,
+  Receipt,
+  TrendingUp,
+  FileText,
+  Sparkles,
+  Wallet,
+  Target,
+  Repeat
 } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -18,8 +21,9 @@ import Login from './components/Login';
 import Register from './components/Register';
 import Profile from './components/Profile';
 import Dashboard from './components/Dashboard';
+import Accounts from './components/Accounts';
+import Goals from './components/Goals';
 import Transactions from './components/Transactions';
-import Analytics from './components/Analytics';
 import Investments from './components/Investments';
 import Reports from './components/Reports';
 import DataInput from './components/DataInput';
@@ -29,11 +33,13 @@ import './App.css';
 function Navigation() {
   const location = useLocation();
   const { user } = useAuth();
-  
+
   const navItems = [
     { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
+    { path: '/accounts', icon: Wallet, label: 'Accounts' },
+    { path: '/goals', icon: Target, label: 'Goals' },
     { path: '/transactions', icon: Receipt, label: 'Transactions' },
-    { path: '/analytics', icon: PieChart, label: 'Analytics' },
+    { path: '/subscriptions', icon: Repeat, label: 'Subscriptions' },
     { path: '/investments', icon: TrendingUp, label: 'Investments' },
     { path: '/reports', icon: FileText, label: 'Reports' },
     { path: '/input', icon: Sparkles, label: 'Smart Input' },
@@ -52,7 +58,7 @@ function Navigation() {
                 FinanceTracker
               </span>
             </div>
-            
+
             {/* Desktop Navigation - Only show if authenticated */}
             {user && (
               <div className="hidden md:ml-8 md:flex md:space-x-1">
@@ -63,11 +69,10 @@ function Navigation() {
                     <Link
                       key={item.path}
                       to={item.path}
-                      className={`inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all ${
-                        isActive
-                          ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 shadow-sm'
-                          : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
-                      }`}
+                      className={`inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all ${isActive
+                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 shadow-sm'
+                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
+                        }`}
                     >
                       <Icon className="w-4 h-4 mr-2" />
                       {item.label}
@@ -77,7 +82,7 @@ function Navigation() {
               </div>
             )}
           </div>
-          
+
           {/* Theme Toggle and User Menu */}
           <div className="flex items-center space-x-3">
             <ThemeToggle />
@@ -92,7 +97,7 @@ function Navigation() {
 // Component to handle home route redirect
 function HomeRoute() {
   const { user, loading } = useAuth();
-  
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-950">
@@ -103,18 +108,18 @@ function HomeRoute() {
       </div>
     );
   }
-  
+
   if (!user) {
     return <Navigate to="/login" replace />;
   }
-  
+
   return <Dashboard />;
 }
 
 // Auth Callback Component for email verification
 function AuthCallback() {
   const { user } = useAuth();
-  
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-950">
       <div className="text-center max-w-md mx-auto px-4">
@@ -187,14 +192,6 @@ function AppContent() {
             element={
               <ProtectedRoute>
                 <Transactions />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/analytics"
-            element={
-              <ProtectedRoute>
-                <Analytics />
               </ProtectedRoute>
             }
           />

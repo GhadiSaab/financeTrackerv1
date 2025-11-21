@@ -107,3 +107,38 @@ export interface AccountTransaction {
   notes: string | null;
   created_at: string;
 }
+
+export interface Account {
+  id: string;
+  user_id: string;
+  name: string;
+  type: 'checking' | 'savings' | 'credit_card' | 'loan' | 'other';
+  balance: number;
+  color: string;
+  icon: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NetWorthHistory {
+  id: string;
+  user_id: string;
+  date: string;
+  total_assets: number;
+  total_liabilities: number;
+  net_worth: number;
+  created_at: string;
+}
+
+export interface Goal {
+  id: string;
+  user_id: string;
+  name: string;
+  target_amount: number;
+  current_amount: number;
+  deadline: string | null;
+  color: string;
+  icon: string;
+  created_at: string;
+  updated_at: string;
+}

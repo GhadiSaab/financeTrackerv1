@@ -9,6 +9,7 @@ interface SummaryCardsProps {
     portfolioValue: number;
     investmentTransactionsValue: number;
     investmentCount: number;
+    netWorth: number;
 }
 
 export default function SummaryCards({
@@ -19,10 +20,30 @@ export default function SummaryCards({
     investments,
     portfolioValue,
     investmentTransactionsValue,
-    investmentCount
+    investmentCount,
+    netWorth
 }: SummaryCardsProps) {
     return (
-        <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-5">
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800/30 rounded-xl md:rounded-2xl shadow-sm col-span-2 lg:col-span-1">
+                <div className="p-3 md:p-5">
+                    <div className="flex items-start justify-between mb-2">
+                        <div className="p-2 bg-blue-100 dark:bg-blue-500/20 rounded-lg">
+                            <Wallet className="h-4 w-4 md:h-5 md:w-5 text-blue-600 dark:text-blue-400" />
+                        </div>
+                    </div>
+                    <div>
+                        <p className="text-xs md:text-sm font-medium text-blue-700 dark:text-blue-400 mb-1">Net Worth</p>
+                        <p className={`text-lg md:text-2xl font-bold ${netWorth >= 0 ? 'text-blue-900 dark:text-blue-100' : 'text-red-600 dark:text-red-400'}`}>
+                            ${netWorth.toFixed(0)}
+                        </p>
+                        <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                            Total Assets - Liabilities
+                        </p>
+                    </div>
+                </div>
+            </div>
+
             <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800/30 rounded-xl md:rounded-2xl shadow-sm">
                 <div className="p-3 md:p-5">
                     <div className="flex items-start justify-between mb-2">
@@ -51,19 +72,19 @@ export default function SummaryCards({
                 </div>
             </div>
 
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800/30 rounded-xl md:rounded-2xl shadow-sm">
+            <div className="bg-gradient-to-br from-cyan-50 to-sky-50 dark:from-cyan-900/20 dark:to-sky-900/20 border border-cyan-200 dark:border-cyan-800/30 rounded-xl md:rounded-2xl shadow-sm">
                 <div className="p-3 md:p-5">
                     <div className="flex items-start justify-between mb-2">
-                        <div className="p-2 bg-blue-100 dark:bg-blue-500/20 rounded-lg">
-                            <Wallet className="h-4 w-4 md:h-5 md:w-5 text-blue-600 dark:text-blue-400" />
+                        <div className="p-2 bg-cyan-100 dark:bg-cyan-500/20 rounded-lg">
+                            <Wallet className="h-4 w-4 md:h-5 md:w-5 text-cyan-600 dark:text-cyan-400" />
                         </div>
                     </div>
                     <div>
-                        <p className="text-xs md:text-sm font-medium text-blue-700 dark:text-blue-400 mb-1">Savings</p>
-                        <p className={`text-lg md:text-2xl font-bold ${savings >= 0 ? 'text-blue-900 dark:text-blue-100' : 'text-red-600 dark:text-red-400'}`}>
+                        <p className="text-xs md:text-sm font-medium text-cyan-700 dark:text-cyan-400 mb-1">Savings</p>
+                        <p className={`text-lg md:text-2xl font-bold ${savings >= 0 ? 'text-cyan-900 dark:text-cyan-100' : 'text-red-600 dark:text-red-400'}`}>
                             ${savings.toFixed(0)}
                         </p>
-                        <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                        <p className="text-xs text-cyan-600 dark:text-cyan-400 mt-1">
                             {savingsRate}% of income
                         </p>
                     </div>
