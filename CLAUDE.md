@@ -54,6 +54,12 @@ Managed through Supabase with the following tables (all include `user_id` for RL
 - `investments` - Investment portfolio tracking
 - `monthly_reports` - Generated monthly financial reports with PDF URLs
 - `user_settings` - User preferences and settings
+- `accounts` - User bank/financial accounts (checking, savings, credit card, loan)
+- `net_worth_history` - Historical net worth snapshots
+- `goals` - User financial goals with target amounts and deadlines
+- `connected_accounts` - External account connections with sync metadata
+- `account_holdings` - Investment holdings per connected account
+- `account_transactions` - Transactions from connected accounts
 
 ### Supabase Integration
 
@@ -73,8 +79,10 @@ Routes are defined in `src/App.tsx`:
 
 **Protected Routes (require authentication):**
 - `/` - Dashboard (redirects to login if unauthenticated)
+- `/accounts` - Bank/financial accounts management
+- `/goals` - Financial goals tracking
 - `/transactions` - Transaction management
-- `/analytics` - Financial analytics and visualizations
+- `/subscriptions` - Recurring subscriptions management
 - `/investments` - Investment portfolio
 - `/reports` - Monthly reports with PDF generation
 - `/input` - Smart data input (AI parsing, voice input, file upload)
@@ -114,6 +122,19 @@ Routes are defined in `src/App.tsx`:
 - Generates and displays monthly financial reports
 - Triggers Supabase Edge Function to generate PDF reports
 - Downloads PDF with comprehensive financial summary
+
+**Accounts** (`src/components/Accounts.tsx`):
+- Manage bank and financial accounts
+- Track balances across checking, savings, credit cards, and loans
+- Net worth calculation based on assets vs liabilities
+
+**Goals** (`src/components/Goals.tsx`):
+- Create and track financial goals
+- Progress visualization with target amounts and deadlines
+
+**Subscriptions** (`src/components/Subscriptions.tsx`):
+- Manage recurring transactions and subscriptions
+- Track monthly recurring expenses
 
 ### Supabase Edge Functions
 
@@ -189,7 +210,10 @@ Charts use dynamic colors based on theme via `getChartColors()` helper in `Chart
 
 - Development builds include `vite-plugin-source-identifier` for debugging
 - Production builds (`build:prod`) exclude source identifiers
-- Vite config clears temp cache before builds to prevent stale module issues
+- Build uses manual chunking strategy:
+  - `vendor`: react, react-dom, react-router-dom
+  - `charts`: recharts
+  - `ui`: Radix UI components
 
 ## Testing & Deployment
 

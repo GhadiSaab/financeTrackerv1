@@ -146,7 +146,7 @@ export default function Reports() {
       </div>
 
       {/* Report Generator */}
-      <div className="bg-white dark:bg-gray-800 dark:bg-gray-800 p-6 rounded-lg shadow">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
         <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Generate Monthly Report</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <select
@@ -207,7 +207,7 @@ export default function Reports() {
 
       {/* Report Preview */}
       {reportData && (
-        <div className="bg-white dark:bg-gray-800 dark:bg-gray-800 p-8 rounded-lg shadow">
+        <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow">
           <div className="mb-6 flex items-center justify-between">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               Monthly Financial Report - {new Date(selectedYear, selectedMonth - 1).toLocaleDateString('en', { month: 'long', year: 'numeric' })}
@@ -216,20 +216,20 @@ export default function Reports() {
 
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-lg">
-              <p className="text-sm font-medium text-green-800">Total Income</p>
-              <p className="text-3xl font-bold text-green-900 mt-2">${reportData.total_income.toFixed(2)}</p>
+            <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 p-6 rounded-lg">
+              <p className="text-sm font-medium text-green-800 dark:text-green-300">Total Income</p>
+              <p className="text-3xl font-bold text-green-900 dark:text-green-100 mt-2">${reportData.total_income.toFixed(2)}</p>
             </div>
 
-            <div className="bg-gradient-to-br from-red-50 to-red-100 p-6 rounded-lg">
-              <p className="text-sm font-medium text-red-800">Total Expenses</p>
-              <p className="text-3xl font-bold text-red-900 mt-2">${reportData.total_expenses.toFixed(2)}</p>
+            <div className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-800/30 p-6 rounded-lg">
+              <p className="text-sm font-medium text-red-800 dark:text-red-300">Total Expenses</p>
+              <p className="text-3xl font-bold text-red-900 dark:text-red-100 mt-2">${reportData.total_expenses.toFixed(2)}</p>
             </div>
 
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg">
-              <p className="text-sm font-medium text-blue-800">Net Savings</p>
-              <p className="text-3xl font-bold text-blue-900 mt-2">${reportData.net_savings.toFixed(2)}</p>
-              <p className="text-sm text-blue-700 mt-1">{reportData.savings_rate.toFixed(1)}% savings rate</p>
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 p-6 rounded-lg">
+              <p className="text-sm font-medium text-blue-800 dark:text-blue-300">Net Savings</p>
+              <p className="text-3xl font-bold text-blue-900 dark:text-blue-100 mt-2">${reportData.net_savings.toFixed(2)}</p>
+              <p className="text-sm text-blue-700 dark:text-blue-400 mt-1">{reportData.savings_rate.toFixed(1)}% savings rate</p>
             </div>
           </div>
 
@@ -281,7 +281,7 @@ export default function Reports() {
                       </div>
                     </div>
                     {data.budget > 0 && (
-                      <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                         <div
                           className="h-2 rounded-full"
                           style={{

@@ -238,24 +238,24 @@ export default function Investments() {
 
       {/* Portfolio Summary */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white dark:bg-gray-800 dark:bg-gray-800 p-6 rounded-lg shadow">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
           <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Invested</p>
           <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-2">${totalInvested.toFixed(2)}</p>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 dark:bg-gray-800 p-6 rounded-lg shadow">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
           <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Current Value</p>
           <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-2">${totalCurrentValue.toFixed(2)}</p>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 dark:bg-gray-800 p-6 rounded-lg shadow">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
           <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Gain/Loss</p>
           <p className={`text-2xl font-bold mt-2 ${totalGain >= 0 ? 'text-green-600' : 'text-red-600'}`}>
             {totalGain >= 0 ? '+' : ''}${totalGain.toFixed(2)}
           </p>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 dark:bg-gray-800 p-6 rounded-lg shadow">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
           <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Return</p>
           <p className={`text-2xl font-bold mt-2 flex items-center ${Number(totalReturn) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
             {Number(totalReturn) >= 0 ? <TrendingUp className="w-6 h-6 mr-1" /> : <TrendingDown className="w-6 h-6 mr-1" />}
@@ -266,7 +266,7 @@ export default function Investments() {
 
       {/* Portfolio Allocation */}
       {pieData.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 dark:bg-gray-800 p-6 rounded-lg shadow">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
           <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Portfolio Allocation</h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
@@ -292,9 +292,9 @@ export default function Investments() {
       )}
 
       {/* Investments List */}
-      <div className="bg-white dark:bg-gray-800 dark:bg-gray-800 shadow rounded-lg overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead className="bg-gray-50 dark:bg-gray-900">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Asset Type</th>
@@ -305,7 +305,7 @@ export default function Investments() {
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
-          <tbody className="bg-white dark:bg-gray-800 dark:bg-gray-800 divide-y divide-gray-200">
+          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
             {investments.map((investment) => {
               const gain = Number(investment.current_value) - Number(investment.amount);
               const returnPct = ((gain / Number(investment.amount)) * 100).toFixed(2);
@@ -368,7 +368,7 @@ export default function Investments() {
       {/* Add/Edit Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-gray-500 dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-80 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
             <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
               {editingInvestment ? 'Edit Investment' : 'Add New Investment'}
             </h3>

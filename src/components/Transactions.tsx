@@ -274,7 +274,7 @@ export default function Transactions() {
       <QuickFilters activeFilter={quickFilter} onFilterChange={setQuickFilter} />
 
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 dark:bg-gray-800 p-4 rounded-lg shadow space-y-4">
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -283,14 +283,14 @@ export default function Transactions() {
               placeholder="Search transactions..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-full rounded-xl border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-3"
+              className="pl-10 w-full rounded-xl border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-3"
             />
           </div>
 
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value as any)}
-            className="rounded-xl border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-3"
+            className="rounded-xl border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-3"
           >
             <option value="all">All Types</option>
             <option value="income">Income</option>
@@ -301,7 +301,7 @@ export default function Transactions() {
           <select
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
-            className="rounded-xl border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-3"
+            className="rounded-xl border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-3"
           >
             <option value="all">All Categories</option>
             {categories.map(cat => (
@@ -320,12 +320,12 @@ export default function Transactions() {
       </div>
 
       {/* Transactions List */}
-      <div className="bg-white dark:bg-gray-800 dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
         {/* Desktop View - Table */}
         {!isMobile && (
           <div className="hidden md:block">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-900">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Description</th>
@@ -335,7 +335,7 @@ export default function Transactions() {
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
-              <tbody className="bg-white dark:bg-gray-800 dark:bg-gray-800 divide-y divide-gray-200">
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                 {filteredTransactions.map((transaction) => {
                   const category = categories.find(c => c.id === transaction.category_id);
                   return (
@@ -401,7 +401,7 @@ export default function Transactions() {
 
         {/* Mobile View - Swipeable Cards */}
         {isMobile && (
-          <div className="md:hidden divide-y divide-gray-200 dark:divide-gray-700">
+          <div className="md:hidden divide-y divide-gray-200 dark:divide-gray-700 dark:divide-gray-700">
             {filteredTransactions.map((transaction) => {
               const category = categories.find(c => c.id === transaction.category_id);
               return (

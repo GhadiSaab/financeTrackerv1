@@ -223,7 +223,7 @@ export default function Analytics() {
       </div>
 
       {/* Monthly Trend */}
-      <div className="bg-white dark:bg-gray-800 dark:bg-gray-800 p-6 rounded-lg shadow">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
         <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Monthly Income vs Expenses</h3>
         <ResponsiveContainer width="100%" height={400}>
           <LineChart data={monthlyTrend}>
@@ -241,7 +241,7 @@ export default function Analytics() {
 
       {/* Category Breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-gray-800 dark:bg-gray-800 p-6 rounded-lg shadow">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
           <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Spending by Category</h3>
           <ResponsiveContainer width="100%" height={350}>
             <PieChart>
@@ -264,7 +264,7 @@ export default function Analytics() {
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 dark:bg-gray-800 p-6 rounded-lg shadow">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
           <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Category Details</h3>
           <div className="space-y-4">
             {categorySpending.slice(0, 8).map((cat, idx) => (
@@ -273,7 +273,7 @@ export default function Analytics() {
                   <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{cat.name}</span>
                   <span className="text-sm text-gray-600 dark:text-gray-300">${cat.value.toFixed(2)}</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                   <div
                     className="h-2 rounded-full"
                     style={{ 
@@ -297,7 +297,7 @@ export default function Analytics() {
       </div>
 
       {/* Spending by Day of Week */}
-      <div className="bg-white dark:bg-gray-800 dark:bg-gray-800 p-6 rounded-lg shadow">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
         <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Average Spending by Day of Week</h3>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={dayOfWeekSpending}>

@@ -27,6 +27,7 @@ import Transactions from './components/Transactions';
 import Investments from './components/Investments';
 import Reports from './components/Reports';
 import DataInput from './components/DataInput';
+import Subscriptions from './components/Subscriptions';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import './App.css';
 
@@ -224,6 +225,30 @@ function AppContent() {
             element={
               <ProtectedRoute>
                 <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/accounts"
+            element={
+              <ProtectedRoute>
+                <Accounts />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/goals"
+            element={
+              <ProtectedRoute>
+                <Goals />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/subscriptions"
+            element={
+              <ProtectedRoute>
+                <Subscriptions />
               </ProtectedRoute>
             }
           />
