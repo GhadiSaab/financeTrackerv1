@@ -254,13 +254,42 @@ export default function Dashboard() {
       });
     }
 
-    if (recommendations.length === 0) {
-      recommendations.push({
-        title: 'Build Emergency Fund',
-        description: 'Aim for 3-6 months of expenses saved. Automate transfers to a high-yield savings account.',
-        potential_savings: '50',
-        difficulty: 'easy'
-      });
+    // Always add some baseline recommendations
+    if (recommendations.length < 3) {
+      const baselineRecs = [
+        {
+          title: 'Build Emergency Fund',
+          description: 'Aim for 3-6 months of expenses saved. Automate transfers to a high-yield savings account.',
+          potential_savings: '50',
+          difficulty: 'easy'
+        },
+        {
+          title: 'Review Dining Out',
+          description: 'Cooking at home 2 more times per week can save $100+ monthly.',
+          potential_savings: '100',
+          difficulty: 'easy'
+        },
+        {
+          title: 'Negotiate Bills',
+          description: 'Call your internet, phone, and insurance providers. Many offer loyalty discounts.',
+          potential_savings: '30',
+          difficulty: 'easy'
+        },
+        {
+          title: 'Use Cash Back Apps',
+          description: 'Apps like Rakuten or Honey can save 2-5% on purchases you already make.',
+          potential_savings: '25',
+          difficulty: 'easy'
+        }
+      ];
+
+      // Add baseline recommendations until we have 3
+      for (const rec of baselineRecs) {
+        if (recommendations.length >= 3) break;
+        if (!recommendations.find(r => r.title === rec.title)) {
+          recommendations.push(rec);
+        }
+      }
     }
 
     return { insights: insights.slice(0, 3), recommendations: recommendations.slice(0, 3) };
@@ -482,10 +511,13 @@ export default function Dashboard() {
                     contentStyle={{
                       backgroundColor: resolvedTheme === 'dark' ? '#1f2937' : '#ffffff',
                       border: `1px solid ${resolvedTheme === 'dark' ? '#374151' : '#e5e7eb'}`,
-                      borderRadius: '0.5rem',
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                      borderRadius: '0.75rem',
+                      boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.15)',
+                      padding: '10px 14px'
                     }}
-                    itemStyle={{ color: resolvedTheme === 'dark' ? '#f3f4f6' : '#111827' }}
+                    labelStyle={{ color: resolvedTheme === 'dark' ? '#9ca3af' : '#6b7280', fontWeight: 500, marginBottom: 4 }}
+                    itemStyle={{ color: resolvedTheme === 'dark' ? '#f3f4f6' : '#111827', fontWeight: 600 }}
+                    cursor={{ fill: resolvedTheme === 'dark' ? 'rgba(75, 85, 99, 0.2)' : 'rgba(229, 231, 235, 0.5)' }}
                   />
                   <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
                   <Bar dataKey="income" fill="#10b981" fillOpacity={0.9} name="Income" radius={[4, 4, 0, 0]} maxBarSize={50} />
@@ -521,10 +553,13 @@ export default function Dashboard() {
                     contentStyle={{
                       backgroundColor: resolvedTheme === 'dark' ? '#1f2937' : '#ffffff',
                       border: `1px solid ${resolvedTheme === 'dark' ? '#374151' : '#e5e7eb'}`,
-                      borderRadius: '0.5rem',
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                      borderRadius: '0.75rem',
+                      boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.15)',
+                      padding: '10px 14px'
                     }}
-                    itemStyle={{ color: resolvedTheme === 'dark' ? '#f3f4f6' : '#111827' }}
+                    labelStyle={{ color: resolvedTheme === 'dark' ? '#9ca3af' : '#6b7280', fontWeight: 500, marginBottom: 4 }}
+                    itemStyle={{ color: resolvedTheme === 'dark' ? '#f3f4f6' : '#111827', fontWeight: 600 }}
+                    cursor={{ fill: resolvedTheme === 'dark' ? 'rgba(75, 85, 99, 0.2)' : 'rgba(229, 231, 235, 0.5)' }}
                   />
                   <Bar dataKey="amount" fill="#8b5cf6" fillOpacity={0.9} name="Avg Spending" radius={[4, 4, 0, 0]} maxBarSize={50} />
                 </BarChart>
@@ -702,23 +737,30 @@ export default function Dashboard() {
                 <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white">Money-Saving Tips</h3>
               </div>
               <div className="space-y-2 md:space-y-3">
-                {insights.recommendations?.map((rec: any, idx: number) => (
-                  <div key={idx} className="p-3 md:p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700/50">
-                    <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-semibold text-sm md:text-base text-gray-900 dark:text-white">{rec.title}</h4>
-                      <span className="text-xs md:text-sm font-bold text-green-600 dark:text-green-400 whitespace-nowrap ml-2">
-                        +${rec.potential_savings}
+                {insights.recommendations && insights.recommendations.length > 0 ? (
+                  insights.recommendations.map((rec: any, idx: number) => (
+                    <div key={idx} className="p-3 md:p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700/50">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-semibold text-sm md:text-base text-gray-900 dark:text-white">{rec.title}</h4>
+                        <span className="text-xs md:text-sm font-bold text-green-600 dark:text-green-400 whitespace-nowrap ml-2">
+                          +${rec.potential_savings}
+                        </span>
+                      </div>
+                      <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300">{rec.description}</p>
+                      <span className={`inline-block mt-2 text-xs px-2 py-1 rounded font-medium ${rec.difficulty === 'easy' ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300' :
+                        rec.difficulty === 'medium' ? 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300' :
+                          'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300'
+                        }`}>
+                        {rec.difficulty}
                       </span>
                     </div>
-                    <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300">{rec.description}</p>
-                    <span className={`inline-block mt-2 text-xs px-2 py-1 rounded font-medium ${rec.difficulty === 'easy' ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300' :
-                      rec.difficulty === 'medium' ? 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300' :
-                        'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300'
-                      }`}>
-                      {rec.difficulty}
-                    </span>
+                  ))
+                ) : (
+                  <div className="text-center py-6">
+                    <Lightbulb className="w-8 h-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Add more transactions to get personalized tips</p>
                   </div>
-                ))}
+                )}
               </div>
             </div>
           </div>

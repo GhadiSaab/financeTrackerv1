@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { useState, useEffect } from 'react';
-import { supabase, Category } from '../lib/supabase';
-import { Sparkles, Upload, FileText, AlertCircle, CheckCircle, Loader, Trash2 } from 'lucide-react';
+import { supabase, Category, Goal } from '../lib/supabase';
+import { Sparkles, Upload, FileText, AlertCircle, CheckCircle, Loader, Trash2, Target } from 'lucide-react';
 import toast from 'react-hot-toast';
 import VoiceInput from './VoiceInput';
 import { seedDefaultCategories } from '../lib/utils';
@@ -11,6 +11,7 @@ export default function DataInput() {
   const [inputText, setInputText] = useState('');
   const [parsedTransactions, setParsedTransactions] = useState<any[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(false);
   const [importing, setImporting] = useState(false);
   const [parseStats, setParseStats] = useState<any>(null);
@@ -19,8 +20,10 @@ export default function DataInput() {
   useEffect(() => {
     if (user) {
       loadCategories();
+      loadGoals();
     } else {
       setCategories([]);
+      setGoals([]);
     }
   }, [user]);
 
@@ -32,7 +35,7 @@ export default function DataInput() {
       .select('*')
       .eq('user_id', user.id)
       .order('name');
-    
+
     if (data && data.length > 0) {
       setCategories(data);
       return;
@@ -45,6 +48,16 @@ export default function DataInput() {
       .eq('user_id', user.id)
       .order('name');
     if (newCats) setCategories(newCats);
+  };
+
+  const loadGoals = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('goals')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('name');
+    if (data) setGoals(data);
   };
 
   const handleVoiceTranscript = (transcript: string) => {
@@ -118,6 +131,7 @@ export default function DataInput() {
           transaction_type: t.transaction_type,
           notes: `Imported via Smart Input (confidence: ${t.confidence})`,
           is_recurring: false,
+          goal_id: t.goal_id || null,
           user_id: user.id
         };
       });
@@ -128,10 +142,30 @@ export default function DataInput() {
 
       if (error) throw error;
 
+      // Update goal amounts for linked transactions
+      const goalUpdates: { [goalId: string]: number } = {};
+      parsedTransactions.forEach(t => {
+        if (t.goal_id) {
+          goalUpdates[t.goal_id] = (goalUpdates[t.goal_id] || 0) + Number(t.amount);
+        }
+      });
+
+      // Apply goal updates
+      for (const [goalId, amountToAdd] of Object.entries(goalUpdates)) {
+        const goal = goals.find(g => g.id === goalId);
+        if (goal) {
+          await supabase
+            .from('goals')
+            .update({ current_amount: goal.current_amount + amountToAdd })
+            .eq('id', goalId);
+        }
+      }
+
       toast.success(`Successfully imported ${parsedTransactions.length} transactions!`);
       setInputText('');
       setParsedTransactions([]);
       setParseStats(null);
+      loadGoals(); // Refresh goals to reflect updated amounts
     } catch (error) {
       console.error('Error importing transactions:', error);
       toast.error('Failed to import transactions');
@@ -394,18 +428,46 @@ export default function DataInput() {
                   </div>
                 </div>
 
-                {/* Category */}
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Category</label>
-                  <select
-                    value={transaction.suggested_category}
-                    onChange={(e) => updateTransaction(index, 'suggested_category', e.target.value)}
-                    className="w-full text-sm font-medium border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    {categories.map(cat => (
-                      <option key={cat.id} value={cat.name}>{cat.name}</option>
-                    ))}
-                  </select>
+                {/* Category & Goal */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Category</label>
+                    <select
+                      value={transaction.suggested_category}
+                      onChange={(e) => updateTransaction(index, 'suggested_category', e.target.value)}
+                      className="w-full text-sm font-medium border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      {categories.map(cat => (
+                        <option key={cat.id} value={cat.name}>{cat.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Goal Assignment - shown for investment transactions */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">
+                      <span className="flex items-center gap-1">
+                        <Target className="w-3 h-3" />
+                        Link to Goal {transaction.transaction_type === 'investment' && <span className="text-teal-500">(Recommended)</span>}
+                      </span>
+                    </label>
+                    <select
+                      value={transaction.goal_id || ''}
+                      onChange={(e) => updateTransaction(index, 'goal_id', e.target.value || null)}
+                      className={`w-full text-sm font-medium border-2 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all ${
+                        transaction.goal_id
+                          ? 'border-teal-400 dark:border-teal-500 bg-teal-50 dark:bg-teal-500/10'
+                          : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900'
+                      } text-gray-900 dark:text-gray-100`}
+                    >
+                      <option value="">No goal linked</option>
+                      {goals.map(goal => (
+                        <option key={goal.id} value={goal.id}>
+                          🎯 {goal.name} (${goal.current_amount.toLocaleString()} / ${goal.target_amount.toLocaleString()})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
             ))}

@@ -1,4 +1,4 @@
-import { Flame, Calendar, Target, Trophy } from 'lucide-react';
+import { Zap, Calendar, Trophy, CheckCircle2 } from 'lucide-react';
 import { Transaction } from '../lib/supabase';
 
 interface SpendingStreakProps {
@@ -75,71 +75,74 @@ export default function SpendingStreak({ transactions }: SpendingStreakProps) {
   const getStreakMessage = () => {
     if (streak.current === 0) return "Start your tracking streak today!";
     if (streak.current === 1) return "Great start! Keep it going!";
-    if (streak.current < 7) return `${streak.current} days strong! 🔥`;
-    if (streak.current < 30) return `${streak.current} days! You're on fire! 🔥🔥`;
-    return `${streak.current} days! Unstoppable! 🔥🔥🔥`;
+    if (streak.current < 7) return `${streak.current} days strong!`;
+    if (streak.current < 30) return `${streak.current} days! Amazing consistency!`;
+    return `${streak.current} days! You're a pro!`;
   };
 
   return (
-    <div className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/30 dark:to-red-950/30 border border-orange-200 dark:border-orange-800/50 p-4 md:p-6 rounded-xl md:rounded-2xl shadow-sm">
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-4 md:p-6 rounded-xl md:rounded-2xl shadow-sm">
       <div className="flex items-center gap-2 mb-4">
-        <Flame className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+        <div className="p-2 bg-teal-100 dark:bg-teal-500/20 rounded-lg">
+          <Zap className="w-4 h-4 md:w-5 md:h-5 text-teal-600 dark:text-teal-400" />
+        </div>
         <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white">
           Tracking Streak
         </h3>
       </div>
 
       <div className="grid grid-cols-3 gap-3 mb-4">
-        <div className="bg-white dark:bg-gray-900/50 p-3 rounded-lg text-center">
+        <div className="bg-gradient-to-br from-teal-50 to-emerald-50 dark:from-teal-500/10 dark:to-emerald-500/10 p-3 rounded-xl text-center border border-teal-100 dark:border-teal-500/20">
           <div className="flex items-center justify-center mb-1">
-            <Flame className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+            <Zap className="w-5 h-5 text-teal-600 dark:text-teal-400" />
           </div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">
+          <p className="text-2xl font-bold text-teal-700 dark:text-teal-300">
             {streak.current}
           </p>
-          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Current</p>
+          <p className="text-xs text-teal-600 dark:text-teal-400 mt-1">Current</p>
         </div>
 
-        <div className="bg-white dark:bg-gray-900/50 p-3 rounded-lg text-center">
+        <div className="bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-500/10 dark:to-yellow-500/10 p-3 rounded-xl text-center border border-amber-100 dark:border-amber-500/20">
           <div className="flex items-center justify-center mb-1">
-            <Trophy className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+            <Trophy className="w-5 h-5 text-amber-600 dark:text-amber-400" />
           </div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">
+          <p className="text-2xl font-bold text-amber-700 dark:text-amber-300">
             {streak.longest}
           </p>
-          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Best</p>
+          <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">Best</p>
         </div>
 
-        <div className="bg-white dark:bg-gray-900/50 p-3 rounded-lg text-center">
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-500/10 dark:to-indigo-500/10 p-3 rounded-xl text-center border border-blue-100 dark:border-blue-500/20">
           <div className="flex items-center justify-center mb-1">
             <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
           </div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">
+          <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">
             {streak.daysTracked}
           </p>
-          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Total Days</p>
+          <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">Total Days</p>
         </div>
       </div>
 
-      <div className="bg-gradient-to-r from-orange-100 to-red-100 dark:from-orange-900/30 dark:to-red-900/30 p-3 rounded-lg text-center">
-        <p className="text-sm font-semibold text-orange-900 dark:text-orange-100">
+      <div className="bg-gradient-to-r from-teal-50 to-emerald-50 dark:from-teal-500/10 dark:to-emerald-500/10 p-3 rounded-xl text-center border border-teal-100 dark:border-teal-500/20">
+        <p className="text-sm font-semibold text-teal-700 dark:text-teal-300">
           {getStreakMessage()}
         </p>
       </div>
 
       {/* Streak visualization */}
-      <div className="mt-4 flex gap-1 overflow-x-auto">
-        {[...Array(Math.min(streak.current, 30))].map((_, i) => (
-          <div
-            key={i}
-            className="w-2 h-8 bg-gradient-to-t from-orange-500 to-red-500 rounded-full flex-shrink-0"
-            style={{
-              opacity: 1 - (i * 0.02),
-              animation: `pulse ${2 + i * 0.1}s infinite`
-            }}
-          />
-        ))}
-      </div>
+      {streak.current > 0 && (
+        <div className="mt-4 flex gap-1 overflow-x-auto pb-1">
+          {[...Array(Math.min(streak.current, 30))].map((_, i) => (
+            <div
+              key={i}
+              className="w-2.5 h-6 bg-gradient-to-t from-teal-500 to-emerald-400 rounded-full flex-shrink-0"
+              style={{
+                opacity: 0.4 + (i / Math.min(streak.current, 30)) * 0.6
+              }}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

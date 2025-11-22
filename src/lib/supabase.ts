@@ -16,6 +16,7 @@ export interface Transaction {
   transaction_type: 'income' | 'expense' | 'investment';
   notes: string | null;
   is_recurring: boolean;
+  goal_id: string | null;
   created_at: string;
 }
 

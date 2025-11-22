@@ -64,13 +64,29 @@ export default function Subscriptions() {
         }
     };
 
-    const totalMonthly = subscriptions.reduce((sum, sub) => {
-        if (sub.transaction_type === 'expense') return sum + Number(sub.amount);
-        if (sub.transaction_type === 'income') return sum - Number(sub.amount);
-        return sum;
-    }, 0);
+    // Get unique subscriptions by description (avoid counting duplicates)
+    const uniqueSubscriptions = subscriptions.reduce((acc, sub) => {
+        const key = `${sub.description}-${sub.merchant}-${sub.amount}`;
+        if (!acc.has(key)) {
+            acc.set(key, sub);
+        }
+        return acc;
+    }, new Map<string, Transaction>());
 
+    const uniqueSubsList = Array.from(uniqueSubscriptions.values());
+
+    // Calculate totals from unique subscriptions only
+    const totalMonthlyExpenses = uniqueSubsList
+        .filter(sub => sub.transaction_type === 'expense')
+        .reduce((sum, sub) => sum + Number(sub.amount), 0);
+
+    const totalMonthlyIncome = uniqueSubsList
+        .filter(sub => sub.transaction_type === 'income')
+        .reduce((sum, sub) => sum + Number(sub.amount), 0);
+
+    const totalMonthly = totalMonthlyExpenses;
     const totalYearly = totalMonthly * 12;
+    const netMonthly = totalMonthlyExpenses - totalMonthlyIncome;
 
     if (loading) {
         return (
@@ -119,9 +135,9 @@ export default function Subscriptions() {
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Active Subscriptions</h3>
                 </div>
 
-                {subscriptions.length > 0 ? (
+                {uniqueSubsList.length > 0 ? (
                     <div className="divide-y divide-gray-200 dark:divide-gray-800">
-                        {subscriptions.map((sub) => {
+                        {uniqueSubsList.map((sub) => {
                             const category = categories.find(c => c.id === sub.category_id);
                             return (
                                 <div key={sub.id} className="p-4 md:p-6 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
