@@ -39,6 +39,7 @@ import BudgetProgress from './BudgetProgress';
 import SmartInsights from './SmartInsights';
 import SpendingStreak from './SpendingStreak';
 import SummaryCards from './SummaryCards';
+import FinancialMetrics from './FinancialMetrics';
 
 export default function Dashboard() {
   const { resolvedTheme } = useTheme();
@@ -441,7 +442,17 @@ export default function Dashboard() {
         netWorth={animatedNetWorth}
       />
 
-      {/* Charts Row - Mobile Optimized */}
+      {/* Quick Financial Metrics */}
+      {transactions.length > 0 && (
+        <FinancialMetrics
+          transactions={transactions}
+          categories={categories}
+          totalIncome={totalIncome}
+          totalExpenses={totalExpenses}
+          netSavings={netSavings}
+        />
+      )}
+
       {/* Charts Row - Mobile Optimized */}
       {monthlyData.length > 0 ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4">

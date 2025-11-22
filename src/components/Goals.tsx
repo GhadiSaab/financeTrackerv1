@@ -253,47 +253,53 @@ export default function Goals() {
                         </h3>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Goal Name</label>
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Goal Name</label>
                                 <input
                                     type="text"
                                     required
                                     value={formData.name}
                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    className="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full text-sm border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     placeholder="e.g. Emergency Fund"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Target Amount</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    required
-                                    value={formData.target_amount}
-                                    onChange={(e) => setFormData({ ...formData, target_amount: e.target.value })}
-                                    className="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="0.00"
-                                />
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Target Amount</label>
+                                <div className="relative">
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium">$</span>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        required
+                                        value={formData.target_amount}
+                                        onChange={(e) => setFormData({ ...formData, target_amount: e.target.value })}
+                                        className="w-full text-sm border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg pl-7 pr-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                        placeholder="0.00"
+                                    />
+                                </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Current Saved Amount</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    required
-                                    value={formData.current_amount}
-                                    onChange={(e) => setFormData({ ...formData, current_amount: e.target.value })}
-                                    className="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="0.00"
-                                />
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Current Saved Amount</label>
+                                <div className="relative">
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium">$</span>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        required
+                                        value={formData.current_amount}
+                                        onChange={(e) => setFormData({ ...formData, current_amount: e.target.value })}
+                                        className="w-full text-sm border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg pl-7 pr-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                        placeholder="0.00"
+                                    />
+                                </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Target Date (Optional)</label>
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Target Date (Optional)</label>
                                 <input
                                     type="date"
                                     value={formData.deadline}
                                     onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
-                                    className="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full text-sm border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                 />
                             </div>
                             <div className="flex justify-end gap-3 mt-6">

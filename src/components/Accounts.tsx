@@ -325,41 +325,44 @@ export default function Accounts() {
                         </h3>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Account Name</label>
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Account Name</label>
                                 <input
                                     type="text"
                                     required
                                     value={formData.name}
                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    className="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full text-sm border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     placeholder="e.g. Main Checking"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type</label>
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Type</label>
                                 <select
                                     value={formData.type}
                                     onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                                    className="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full text-sm border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                 >
-                                    <option value="checking">Checking</option>
-                                    <option value="savings">Savings</option>
-                                    <option value="credit_card">Credit Card</option>
-                                    <option value="loan">Loan</option>
-                                    <option value="other">Other Asset</option>
+                                    <option value="checking">🏦 Checking</option>
+                                    <option value="savings">💰 Savings</option>
+                                    <option value="credit_card">💳 Credit Card</option>
+                                    <option value="loan">📋 Loan</option>
+                                    <option value="other">📁 Other Asset</option>
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Current Balance</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    required
-                                    value={formData.balance}
-                                    onChange={(e) => setFormData({ ...formData, balance: e.target.value })}
-                                    className="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="0.00"
-                                />
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Current Balance</label>
+                                <div className="relative">
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium">$</span>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        required
+                                        value={formData.balance}
+                                        onChange={(e) => setFormData({ ...formData, balance: e.target.value })}
+                                        className="w-full text-sm border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg pl-7 pr-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                        placeholder="0.00"
+                                    />
+                                </div>
                             </div>
                             <div className="flex justify-end gap-3 mt-6">
                                 <button

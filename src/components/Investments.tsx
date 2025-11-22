@@ -374,38 +374,39 @@ export default function Investments() {
             </h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
+                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Investment Name</label>
                 <input
                   type="text"
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  className="w-full text-sm border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  placeholder="e.g., Apple Inc."
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Asset Type</label>
+                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Asset Type</label>
                 <select
                   value={formData.asset_type}
                   onChange={(e) => setFormData({ ...formData, asset_type: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  className="w-full text-sm border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 >
-                  <option>Stocks</option>
-                  <option>Bonds</option>
-                  <option>Index Fund</option>
-                  <option>ETF</option>
-                  <option>Cryptocurrency</option>
-                  <option>REIT</option>
-                  <option>Savings</option>
-                  <option>Other</option>
+                  <option value="Stocks">📈 Stocks</option>
+                  <option value="Bonds">📊 Bonds</option>
+                  <option value="Index Fund">📉 Index Fund</option>
+                  <option value="ETF">📋 ETF</option>
+                  <option value="Cryptocurrency">🪙 Cryptocurrency</option>
+                  <option value="REIT">🏢 REIT</option>
+                  <option value="Savings">💰 Savings</option>
+                  <option value="Other">📁 Other</option>
                 </select>
               </div>
 
               {/* Ticker Symbol - conditional based on asset type */}
               {(['Stocks', 'ETF', 'Cryptocurrency'].includes(formData.asset_type)) && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">
                     Ticker Symbol {(['Stocks', 'ETF'].includes(formData.asset_type)) && <span className="text-red-500">*</span>}
                   </label>
                   <input
@@ -413,7 +414,7 @@ export default function Investments() {
                     value={formData.ticker_symbol}
                     onChange={(e) => setFormData({ ...formData, ticker_symbol: e.target.value.toUpperCase() })}
                     placeholder="e.g., AAPL, VOO, BTC"
-                    className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 uppercase"
+                    className="w-full text-sm font-mono border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all uppercase"
                   />
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                     Enter the stock ticker or crypto symbol (must be unique in your portfolio)
@@ -421,48 +422,59 @@ export default function Investments() {
                 </div>
               )}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Amount Invested</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  required
-                  value={formData.amount}
-                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Amount Invested</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium">$</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      required
+                      value={formData.amount}
+                      onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                      className="w-full text-sm border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg pl-7 pr-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                      placeholder="0.00"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Current Value</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium">$</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      required
+                      value={formData.current_value}
+                      onChange={(e) => setFormData({ ...formData, current_value: e.target.value })}
+                      className="w-full text-sm border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg pl-7 pr-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                      placeholder="0.00"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Current Value</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  required
-                  value={formData.current_value}
-                  onChange={(e) => setFormData({ ...formData, current_value: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Purchase Date</label>
+                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Purchase Date</label>
                 <input
                   type="date"
                   required
                   value={formData.purchase_date}
                   onChange={(e) => setFormData({ ...formData, purchase_date: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  className="w-full text-sm border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes</label>
+                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Notes (Optional)</label>
                 <textarea
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  rows={3}
-                  className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  rows={2}
+                  placeholder="Any additional notes..."
+                  className="w-full text-sm border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 />
               </div>
 
